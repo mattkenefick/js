@@ -10,7 +10,6 @@ if(!com.bigspaceship.api.facebook.OAuthBridge) {
 
 	com.bigspaceship.api.facebook.OAuthBridge.setSwfId = function($id) {
 		com.bigspaceship.api.facebook.OAuthBridge.swfId = $id;
-		console.log(1);
 	}
 
 	com.bigspaceship.api.facebook.OAuthBridge.initialize = function() {
