@@ -34,7 +34,7 @@ if(!com.bigspaceship.api.facebook.OAuthBridge) {
 						if(response[0][perm] == '1') perms.push(perm);
 					}
 
-					$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLogin(FB._apiKey,FB.getSession(),perms.join(','));
+					$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLogin(FB.getSession(),perms.join(','));
 			       });
 			}
 			else {
@@ -48,7 +48,7 @@ if(!com.bigspaceship.api.facebook.OAuthBridge) {
 
 		FB.login(function(response) {
 			if(response.session) {
-				$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLogin(FB._apiKey,FB.getSession(),response.perms);
+				$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLogin( FB.getSession() );
 			} else {
 				$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLoginCancel();
 			}
