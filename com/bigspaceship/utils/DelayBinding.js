@@ -36,6 +36,33 @@
  * @version         1.0
  * @langversion     Javascript
  *
+ *
+ *  Usage:
+ *
+ *  The DelayBinding class is good for forcing a certain interval of delay
+ *  between different types of actions. These actions are namespaced by
+ *  Strings so you can have more than one type.
+ *
+ *  You could globalize the action to be "keyDown," but you could also have
+ *  "keyDown-arrows," "keyDown-letters," and "keyDown-numbers" with different
+ *  intervals.
+ *
+
+    var delayBind       =   new DelayBinding();
+        delayBind.add('keyDown', 500);
+
+    document.onkeydown  =   function onkeydown(){
+        if( delayBind.check('keyDown'){
+            alert("Key is down");
+        };
+    };
+
+ *
+ *  It is helpful for gaming where you don't want controls to fire too often,
+ *  with mousemovements if you don't want to report every pixel of movement,
+ *  with sprite animations to cause sequences, and many other things.
+ *
+ *
  */
 
 function DelayBinding() {
@@ -63,12 +90,14 @@ function DelayBinding() {
 
     this.add            =   function add($type /*String*/, $delay /*Number*/){
         if(!$type || isNaN($delay)){
-            Out.error(_self, "Arguments for adding a delay are incorrect.");
+            if(Out)
+                Out.error(_self, "Arguments for adding a delay are incorrect.");
             return null;
         };
 
         // report
-        Out.debug(_self, "Binding [" + $type + "]");
+        if(Out)
+            Out.debug(_self, "Binding [" + $type + "]");
 
         // bind
         _bindings[$type]    =   {
@@ -89,12 +118,14 @@ function DelayBinding() {
 
     this.remove         =   function remove($type /*String*/){
         if(!$type){
-            Out.error(_self, "Arguments for removing a delay are incorrect.");
+            if(Out)
+                Out.error(_self, "Arguments for removing a delay are incorrect.");
             return null;
         };
 
         // report
-        Out.debug(_self, "Removing binding [" + $type + "]");
+        if(Out)
+            Out.debug(_self, "Removing binding [" + $type + "]");
 
         // bind
         delete _bindings[$type];
@@ -116,7 +147,8 @@ function DelayBinding() {
         var _now        =   now();
 
         if(!binding){
-            Out.error(_self, "Binding [" + $type + "] does not exist.");
+            if(Out)
+                Out.error(_self, "Binding [" + $type + "] does not exist.");
             return null;
         };
 
@@ -137,7 +169,7 @@ function DelayBinding() {
 // ===========================================
 
     function now(){
-        return (new Date()).getTime();
+        return Date.now();
     };
 
 
