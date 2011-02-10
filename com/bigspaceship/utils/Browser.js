@@ -41,16 +41,28 @@ var Browser         =   new(function(){
 
     this.setClasses =   function setClasses(){
         if($.browser.msie)      $('body').addClass('is-ie');
-        if($.browser.webkit)    $('body').addClass('is-webkit');
         if($.browser.opera)     $('body').addClass('is-opera');
+        if($.browser.firefox)   $('body').addClass('is-firefox');
+        if($.browser.chrome)    $('body').addClass('is-chrome');
+        if($.browser.safari)    $('body').addClass('is-safari');
+
+        if($.browser.webkit)    $('body').addClass('is-webkit');
+        if($.browser.gecko)     $('body').addClass('is-gecko');
         if($.browser.mozilla)   $('body').addClass('is-mozilla');
-        if(navigator.userAgent.toString().indexOf('Chrome'))
-            $('body').addClass('is-chrome');
-        if( $.browser.safari &&
-            !navigator.userAgent.toString().indexOf('Chrome'))
-            $('body').addClass('is-safari');
+        if($.browser.presto)    $('body').addClass('is-presto');
+
+        if($.browser.android)   $('body').addClass('is-android');
+        if($.browser.android)   $('body').addClass('android-' + $.browser.androidVersion.toString().substring(0,1) );
+        if($.browser.iphone)    $('body').addClass('is-iphone');
+        if($.browser.ipad)      $('body').addClass('is-ipad');
+        if($.browser.blackberry)$('body').addClass('is-blackberry');
+        if($.browser.winMoible) $('body').addClass('is-winmobile');
+
+        if($.browser.mobile)    $('body').addClass('is-mobile');
+        if(!$.browser.mobile)   $('body').addClass('is-desktop');
 
         $('body').addClass( 'v-' + $.browser.version.toString().substring(0,1) );
+
     };
 
 
@@ -69,7 +81,7 @@ var Browser         =   new(function(){
     };
 
     // register
-    if(Main){
+    if(window['Main']){
         Main.register(this);
     };
 
@@ -81,11 +93,34 @@ var userAgent = navigator.userAgent.toLowerCase();
 
 // Figure out what browser is being used
 jQuery.browser = {
-    version: (userAgent.match( /.+(?:rv|it|ra|ie|me)[\/: ]([\d.]+)/ ) || [])[1],
+    version: (userAgent.match( /.+(?:rv|it|ra|ie|me|ve)[\/: ]([\d.]+)/ ) || [])[1],
+
     chrome: /chrome/.test( userAgent ),
     safari: /webkit/.test( userAgent ) && !/chrome/.test( userAgent ),
     opera: /opera/.test( userAgent ),
+    firefox: /firefox/.test( userAgent ),
     msie: /msie/.test( userAgent ) && !/opera/.test( userAgent ),
+
     mozilla: /mozilla/.test( userAgent ) && !/(compatible|webkit)/.test( userAgent ),
-    webkit: $.browser.webkit
+
+    webkit: $.browser.webkit,
+    gecko: /[^like]{4} gecko/.test( userAgent ),
+    presto: /presto/.test( userAgent ),
+
+    android: /android/.test( userAgent ),
+    androidVersion: (userAgent.match( /.+(?:android)[\/: ]([\d.]+)/ ) || [0,0])[1],
+
+    iphone: /iphone|ipod/.test( userAgent ),
+    iphoneVersion: (userAgent.match( /.+(?:iphone\ os)[\/: ]([\d_]+)/ ) || [0,0])[1].toString().split('_').join('.'),
+
+    ipad: /ipad/.test( userAgent ),
+    ipadVersion: (userAgent.match( /.+(?:cpu\ os)[\/: ]([\d_]+)/ ) || [0,0])[1].toString().split('_').join('.'),
+
+    blackberry: /blackberry/.test( userAgent ),
+
+    winMobile: /Windows\ Phone/.test( userAgent ),
+    winMobileVersion: (userAgent.match( /.+(?:windows\ phone\ os)[\/: ]([\d_]+)/ ) || [0,0])[1]
 };
+
+jQuery.browser.mobile   =   ($.browser.iphone || $.browser.ipad || $.browser.android || $.browser.blackberry );
+

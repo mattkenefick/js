@@ -62,9 +62,9 @@ if(!Array.sortOn){
     };
 };
 
-function foreach($haystack, $callback){
+function foreach($haystack, $callback, $dontIgnoreFunctions){
     for(var i in $haystack){
-        if(typeof($haystack[i]) != 'function'){
+        if(typeof($haystack[i]) != 'function' || $dontIgnoreFunctions){
             $callback(i, $haystack[i]);
         };
     };
@@ -147,7 +147,7 @@ function distance($a, $b){
     return Math.sqrt(dx * dx + dy * dy);
 };
 
-if(!Point){
+if(!window['Point']){
     function Point($x, $y, $z){
         return {x: $x, y: $y, z: $z};
     };

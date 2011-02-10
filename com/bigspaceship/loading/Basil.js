@@ -19,7 +19,7 @@ To contact Big Spaceship, email info@bigspaceship.com or write to us at
 45 Main Street #716, Brooklyn, NY, 11201.
 */
 
-if(!Basil){
+if(!window['Basil']){
 
     /**
     * Basil
