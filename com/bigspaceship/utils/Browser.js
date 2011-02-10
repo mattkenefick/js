@@ -22,10 +22,11 @@ To contact Big Spaceship, email info@bigspaceship.com or write to us at
 var Browser         =   new(function(){
 
     // private vars
-    var _me         =   this;
+    var _self       =   this;
 
     // public vars
     this.name       =   "Browser";
+
 
 // ===========================================
 // ===== CALLABLE
@@ -62,7 +63,6 @@ var Browser         =   new(function(){
         if(!$.browser.mobile)   $('body').addClass('is-desktop');
 
         $('body').addClass( 'v-' + $.browser.version.toString().substring(0,1) );
-
     };
 
 
@@ -81,8 +81,8 @@ var Browser         =   new(function(){
     };
 
     // register
-    if(window['Main']){
-        Main.register(this);
+    if(window['Sage']){
+        Sage.register(_self);
     };
 
     return this;
