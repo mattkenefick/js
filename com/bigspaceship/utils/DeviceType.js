@@ -22,7 +22,7 @@ To contact Big Spaceship, email info@bigspaceship.com or write to us at
 var DeviceType      =   new(function(){
 
     // private vars
-    var _me         =   this;
+    var _self         =   this;
 
     // public vars
     this.name       =   "DeviceType";

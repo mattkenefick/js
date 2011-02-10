@@ -43,7 +43,7 @@ function SimpleSequencer($id) {
     if(!$id) $id = '';
 
     // Private
-    var _me                     =   this;
+    var _self                     =   this;
     var _animationSteps_array   =   [];
     var _countStep              =   0;
     var _id                     =   '';
@@ -104,7 +104,7 @@ function SimpleSequencer($id) {
             });
         }
 
-        return _me;
+        return _self;
     }
 
     /**
@@ -126,7 +126,7 @@ function SimpleSequencer($id) {
                 }
             );*/
 
-            if(_me.debug)
+            if(_self.debug)
                 Out.debug('START: '+_id+', steps: '+_animationSteps_array.length+', _countStep: '+_countStep+', stepId: '+_animationSteps_array[_countStep].stepId );
 
             _parallelActions_array  =   [];
@@ -153,7 +153,7 @@ function SimpleSequencer($id) {
 
             // Optional Parameters Handling.
             for(i = 0; i < len; i++) {
-                if(_me.debug)
+                if(_self.debug)
                     Out.status("i: " + i);
 
                 animObj     =   _animationSteps_array[_countStep].array[i];
@@ -161,7 +161,7 @@ function SimpleSequencer($id) {
                 switch (animObj.type) {
                     case 'normal':
                         if(animObj.args && animObj.args.hasOwnProperty('delay')) {
-                            if(_me.debug)
+                            if(_self.debug)
                                 Out.status("delay: " + animObj.args.delay + ", _id = " + _id);
 
                             setTimeout(function(){
@@ -169,7 +169,7 @@ function SimpleSequencer($id) {
                             }, animObj.args.delay);
 
                         } else {
-                            if(_me.debug)
+                            if(_self.debug)
                                 Out.debug("_id = " + _id + ", animObj = " + animObj);
 
                             if(animObj.args && animObj.args.hasOwnProperty('functionToCallParams')) {
@@ -183,7 +183,7 @@ function SimpleSequencer($id) {
             }
         }else{
             _onComplete();
-            if(_me.debug) {
+            if(_self.debug) {
                 Out.debug('no steps added!');
             }
         }
@@ -207,7 +207,7 @@ function SimpleSequencer($id) {
 
         _parallelActions_array.push(lock);
 
-        if(_me.debug){
+        if(_self.debug){
             Out.debug('newLockId: '+ lock+', countLocks: '+ _parallelActions_array.length);
         }
         return lock;
@@ -217,7 +217,7 @@ function SimpleSequencer($id) {
         if(_parallelActions_array.length < 1){
             if(_countStep + 1 < _animationSteps_array.length){
                 _countStep+=1;
-                _me.start();
+                _self.start();
             }else{
                 _onComplete();
             }
@@ -230,7 +230,7 @@ function SimpleSequencer($id) {
 // ===========================================
 
     function _onAnimationComplete($evt, $args, $data, $eventType){
-        if(_me.debug){
+        if(_self.debug){
             Out.debug('_onAnimationComplete: ' + $evt.target + ', _id: ' + _id);
         }
 
@@ -246,7 +246,7 @@ function SimpleSequencer($id) {
     }
 
     function _onComplete(){
-        if(_me.debug){
+        if(_self.debug){
             Out.debug('COMPLETE id: '+ _id);
         };
 
@@ -262,7 +262,7 @@ function SimpleSequencer($id) {
         //creating an "unique" id for debugging reasons
         _id     =   $id + '_' + Math.random()*100;
 
-        if(_me.debug){
+        if(_self.debug){
             Out.debug('SimpleSequencer CONSTRUCTOR called, id:' +  _id);
 
             //_sprite.addEventListener(Event.ENTER_FRAME, _onEnterFrame_handler);

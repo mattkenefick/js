@@ -40,7 +40,7 @@
 var Roman       =   new(function() {
 
     // private
-    var _me     =   this;
+    var _self     =   this;
 
     // public
     this.name   =   "Roman";
@@ -68,10 +68,10 @@ var Roman       =   new(function() {
 
         // Loop from biggest value to smallest, successively subtracting,
         // from the binary value while adding to the roman representation.
-        for(var i = 0; i < _me.RCODE.length; i++){
-            while($decimal >= _me.BVAL[i]){
-                $decimal -= _me.BVAL[i];
-                roman    += _me.RCODE[i];
+        for(var i = 0; i < _self.RCODE.length; i++){
+            while($decimal >= _self.BVAL[i]){
+                $decimal -= _self.BVAL[i];
+                roman    += _self.RCODE[i];
             }
         }
 

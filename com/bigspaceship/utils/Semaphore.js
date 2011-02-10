@@ -46,7 +46,7 @@ function Semaphore($id, $locks) {
     if(!$locks) $locks  = [];
 
     // Private
-    var _me          =  this;
+    var _self          =  this;
     var _id          =  '';
     var _locks       =  [];
     var _numlocks    =  0;
@@ -64,7 +64,7 @@ function Semaphore($id, $locks) {
         _locks[$l]      =   true;
         _numunlocked++;
 
-        if(_me.isUnlocked()) {
+        if(_self.isUnlocked()) {
             // Fires an onUnlock event the very moment the final
             // condition has been met.  You can either subscribe
             // to this event or test the returned value.
@@ -181,7 +181,7 @@ function Semaphore($id, $locks) {
         _id    = ($id ? $id : Math.round(Math.random() * 100000)).toString();
         _locks = [];
 
-        if(i) while(i--) _me.addLock(l[i]);
+        if(i) while(i--) _self.addLock(l[i]);
     })();
 
     return this;
