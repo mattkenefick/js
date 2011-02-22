@@ -1,0 +1,14 @@
+/** 
+ * CDN Javascript
+ * 
+ */
+ 
+// jQuery
+http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js
+http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.4.4.min.js
+
+// jQuery UI
+http://ajax.microsoft.com/ajax/jquery.ui/1.8.5/jquery-ui.js
+
+// SWFObject
+http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js

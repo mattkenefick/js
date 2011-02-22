@@ -44,6 +44,14 @@ Out = {
     __silenced   :   {},
     __instance   :   null,
 
+    enableClass:        function($className){
+        this.__silenced[$className.name]  =   false;
+    },
+
+    disableClass:       function disableClass($className){
+        this.__silenced[$className.name]  =   true;
+    },
+
     enableLevel:        function( $level ){
         this.__levels[$level] = this.__output;
     },
@@ -72,8 +80,8 @@ Out = {
         this.disableLevel(this.INFO    );
     },
 
-    isSilenced:         function( $o ){
-        return false;
+    isSilenced:         function( $className ){
+        return this.__silenced[$className.name];
     },
 
     /** ================
@@ -81,38 +89,50 @@ Out = {
      ** ================*/
     info:               function($origin, $str) {
         if(this.isSilenced($origin)) return;
-        $str        =   this.getParentClass(this.info.arguments);
+        $origin        =   $origin.name + '.' + this.getParentClass(this.info.arguments);
         this.__levels[this.INFO]("INFO", $origin, $str, OutputEvent.INFO);
+
+        return this;
     },
 
     status:             function($origin, $str) {
         if(this.isSilenced($origin)) return;
-        $str        =   this.getParentClass(this.status.arguments);
+        $origin        =   $origin.name + '.' + this.getParentClass(this.status.arguments);
         this.__levels[this.STATUS]("STATUS", $origin, $str, OutputEvent.STATUS);
+
+        return this;
     },
 
     debug:              function($origin, $str) {
         if(this.isSilenced($origin)) return;
-        $str        =   this.getParentClass(this.debug.arguments);
+        $origin        =   $origin.name + '.' + this.getParentClass(this.debug.arguments);
         this.__levels[this.DEBUG]("DEBUG", $origin, $str, OutputEvent.DEBUG);
+
+        return this;
     },
 
     warning:            function($origin, $str) {
         if(this.isSilenced($origin)) return;
-        $str        =   this.getParentClass(this.warning.arguments);
+        $origin        =   $origin.name + '.' + this.getParentClass(this.warning.arguments);
         this.__levels[this.WARNING]("WARNING", $origin, $str, OutputEvent.WARNING);
+
+        return this;
     },
 
     error:              function($origin, $str) {
         if(this.isSilenced($origin)) return;
-        $str        =   this.getParentClass(this.error.arguments);
+        $origin        =   $origin.name + '.' + this.getParentClass(this.error.arguments);
         this.__levels[this.ERROR]("ERROR", $origin, $str, OutputEvent.ERROR);
+
+        return this;
     },
 
     fatal:              function($origin, $str) {
         if(this.isSilenced($origin)) return;
-        $str        =   this.getParentClass(this.fatal.arguments);
+        $origin        =   $origin.name + '.' + this.getParentClass(this.fatal.arguments);
         this.__levels[this.FATAL]("FATAL", $origin, $str, OutputEvent.FATAL);
+
+        return this;
     },
 
     traceObject:        function($origin, $str, $obj){
@@ -129,18 +149,33 @@ Out = {
         return parent;
     },
 
+    blank:              function blank($count){
+        if(!$count) $count = 1;
+        var str     =   '';
+        for( var i = 0; i < $count; i++ ){
+            // we change the string to count for Google Chrome
+            // which just collects the same log
+            str += '\n';
+        };
+
+           if( typeof( window['console'] ) != 'undefined' )
+                console.log(str);
+
+        return Out;
+    },
+
 
     /** =============
      *  Functionality
      ** =============*/
-    __output:           function($level, $origin, $str, $type){
+    __output:           function($level, $str, $origin, $type){
         var l        = $level;
         var s        = $origin ? $origin : "";
         var i        = this;
 
         while(l.length < 8) l += " ";
 
-        var output   = l + ":::    " + s + "   :: " + $str;
+        var output   = l + "::: " + s + "   :: " + $str;
 
        if( typeof( window['console'] ) != 'undefined' )
             console.log(output);
@@ -149,7 +184,7 @@ Out = {
         i.dispatchEvent(new OutputEvent($type,           output));*/
     },
 
-    __foo:           function($level, $origin, $str, $type){ },
+    __foo:             function($level, $origin, $str, $type){ },
 
 
 'null':null}
