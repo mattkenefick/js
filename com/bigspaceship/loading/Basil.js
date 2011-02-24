@@ -40,6 +40,9 @@ if(!window['Basil']){
         var _extensions     =   {};
         var _isComplete     =   false;
 
+        // used for extending
+        var _lastClass      =   null;
+
         // public vars
         this.name           =   $name || 'Basil';
 
@@ -64,10 +67,77 @@ if(!window['Basil']){
             _classes.push($class);
         };
 
-        this.extend         =   function extend($classA, $classB){
-            Out.debug("Extending " + $classA.name + " with " + $classB );
-            _extensions[$classA.name]   =   $classB;
+
+    // ===========================================
+    // ===== Class Creation
+    // ===========================================
+
+        this.extend         =   function extend($classA, $classB, $isStatic){
+            var _n          =   $classA.name;
+
+            if(typeof(window[$classB]) == 'function'){
+                // insantiable extension
+                var _t  =   new window[$classB]();
+                /*
+                if(_lastClass){
+                    console.log(" ----------- Setting Super For  " + $classB);
+
+                    (function($class){
+                        _t.super        =   function(){
+
+                            var super   =   $class.super;
+
+                            $class.construct();
+
+                            return this;
+
+                        };
+                    })(_lastClass);
+                */
+                }
+                Out.debug(_self, "Extending instance of: " + $classB );
+
+            }else if($isStatic){
+                Out.debug(_self, "Extending " + $classA.name + " with " + $classB );
+                _extensions[$classA.name]   =   $classB;
+                return $classA;
+
+            }else if(typeof(window[$classB]) == 'object'){
+                // static class extension
+                if(window[$classB]==undefined){
+                    Out.error(_self, "Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
+                }else{
+                    var _t  =   $.extend(_t, window[$classB]);
+                    Out.debug(_self, "Extending static class");
+                }
+            }else{
+                // error
+                Out.error(_self, "Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
+            };
+
+            _t              =   $.extend(_t, $classA);
+            _t.name         =   _n;
+            _lastClass      =   _t;
+
+            return _t;
         };
+
+        this.create         =   function create($class){
+            _lastClass  =   $class;
+            return $class;
+
+            // not required ?
+            for(var i in $class){
+                $class.__proto__.constructor.prototype[i]   =   $class[i];
+                delete $class[i];
+            }
+            return $class;
+        };
+
+
+    // ===========================================
+    // ===== Inclusion
+    // ===========================================
 
         this.include        =   function include($file){
             if(_isDuplicateInclude($file)){
@@ -153,7 +223,7 @@ if(!window['Basil']){
                 // initial construct, we used two basically
                 // because of the DOM
                 for( i in _classes ){
-                    if(Array.prototype[i] != _classes[i]){
+                    if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                         if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
                             Out.error(_self, _classes[i].name + " doesn't have construct method");
                         }else{
@@ -164,19 +234,23 @@ if(!window['Basil']){
 
                 // secondly we're going to extend our classes that asked for it
                 for( i in _extensions ){
-                    if(Array.prototype[i] != _classes[i]){
-                        for(ii in _classes){
-                            if(_classes[ii].name == i){
-                                _classes[ii]    =   Class.extend(_classes[ii], _findClassByName(_extensions[i]) );
-                            };
+                    //if(Array.prototype[i] != _extensions[i]){
+                    for(ii in _classes){
+                        if(_classes[ii].name == i){
+                            window[_classes[ii].name]   =   _self.extend(_classes[ii], _extensions[i]);
+                            if(window[_classes[ii].name]['setSelf'])
+                                window[_classes[ii].name]['setSelf']( window[_classes[ii].name] );
+                            else
+                                Out.warning(_self, "Using old reference of self on class " + _classes[ii].name);
                         };
-                    }
+                    };
+                    //}
                 };
 
                 // we fire init first so that elements that need
                 // to be constructed can be formed first.
                 for( i in _classes ){
-                    if(Array.prototype[i] != _classes[i]){
+                    if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                         if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
                             Out.error(_self, _classes[i].name + " doesn't have init method");
                         }else{
