@@ -19,9 +19,9 @@ if(!com.bigspaceship.api.facebook.OAuthBridge) {
 		},1000);
 
 		FB.getLoginStatus(function(response) {
+
 			clearTimeout(com.bigspaceship.api.facebook.OAuthBridge._timer);
 			com.bigspaceship.api.facebook.OAuthBridge._timer = null;
-			
 			if (response.session) {
 				// jk: there is a bug in the current getLoginStatus method Facebook JavaScript SDK -- it doesn't return permissions as expected. the best we can do is manually ask.
 				FB.api({
@@ -48,7 +48,7 @@ if(!com.bigspaceship.api.facebook.OAuthBridge) {
 
 		FB.login(function(response) {
 			if(response.session) {
-				$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLogin( FB.getSession() );
+				$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLogin(FB.getSession(),response.perms);
 			} else {
 				$("#" + com.bigspaceship.api.facebook.OAuthBridge._swfId)[0].handleFacebookLoginCancel();
 			}

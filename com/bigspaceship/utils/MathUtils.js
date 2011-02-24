@@ -2,7 +2,9 @@
 var MathUtils       =   new(function(){
 
     // private vars
+    var _me         =   this;
     var _self         =   this;
+
 
     /**
      * This is used by the RandomDistant function
