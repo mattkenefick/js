@@ -74,28 +74,35 @@ if(!window['Basil']){
 
         this.extend         =   function extend($classA, $classB, $isStatic){
             var _n          =   $classA.name;
+            var _t, _c, _c1, _c2;
 
             if(typeof(window[$classB]) == 'function'){
                 // insantiable extension
-                var _t  =   new window[$classB]();
-                /*
-                if(_lastClass){
-                    console.log(" ----------- Setting Super For  " + $classB);
+                _t  =   new window[$classB]();
 
-                    (function($class){
-                        _t.super        =   function(){
+                // create supers
+                for(var i in _t){
+                    _c2 =   _t[i];
+                    if(typeof(_c2)=='function'){
 
-                            var super   =   $class.super;
+                        if($classA[i]){
+                            // this only fires when ClassB (under) has the same
+                            // function as ClassA (above).. then we super
+                            (function(){
+                                var __1 =   $.extend($classA[i], []);
+                                var __2 =   $.extend(_t[i], []);
 
-                            $class.construct();
+                                $classA[i]         =   function init(){
+                                    return (function(){
+                                        this.super =   __2;
 
-                            return this;
-
-                        };
-                    })(_lastClass);
-                */
-                }
-                Out.debug(_self, "Extending instance of: " + $classB );
+                                        return __1();
+                                    })();
+                                };
+                            })();
+                        }
+                    };
+                };
 
             }else if($isStatic){
                 Out.debug(_self, "Extending " + $classA.name + " with " + $classB );
@@ -115,9 +122,8 @@ if(!window['Basil']){
                 Out.error(_self, "Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
             };
 
-            _t              =   $.extend(_t, $classA);
+            _t              =   $.extend(true, _t, $classA);
             _t.name         =   _n;
-            _lastClass      =   _t;
 
             return _t;
         };
