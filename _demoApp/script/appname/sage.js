@@ -15,20 +15,17 @@ if( Application ){
 *
 * @version 1.0
 * @author Matt Kenefick <m.kenefick@bigspaceship.com>
-* @project Star Wars
+* @project Demo App
 */
 
-if( !Sage ){
+if( !window['Sage'] ){
 
     // CHECK FOR DEPENDENCIES.
-    if(!Out){
+    if(!window['Out']){
         if(console)
             console.log("Cannot find `Out`. This will cause errors.");
     };
-    if(!Class){
-        Out.warning({name:'Sage'}, "Cannot find `Class`. This may cause errors with extending.");
-    };
-    if(!Basil){
+    if(!window['Basil']){
         Out.error({name:'Sage'}, "Cannot find `Basil`. This is a fatal error.");
     };
 

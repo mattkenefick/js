@@ -1,12 +1,8 @@
 // include
-Sage.include(APP_JSURL + "as3display/MovieClip.js");
-Sage.include(APP_JSURL + "as3display/Sprite.js");
-Sage.include(APP_JSURL + "as3display/DisplayObject.js");
-Sage.include(APP_JSURL + "core-application.js");
 
 
 /**
-* Application
+* CoreApplication
 *
 * This is the main application file for DemoApp
 * javascript.
@@ -16,14 +12,13 @@ Sage.include(APP_JSURL + "core-application.js");
 * @project Demo App
 */
 
-Application         =   new (function(){
+function CoreApplication() {
 
     // private vars
     var _self               =   this;
-    var _defaultController  =   'Main';
 
     // public vars
-    this.name               =   'Application';
+    this.name               =   'CoreApplication';
 
 
 // ===========================================
@@ -31,23 +26,11 @@ Application         =   new (function(){
 // ===========================================
 
     this.attach             =   function attach(){
-        Out.debug(_self, "Demo App Initiated.");
-        Out.debug(_self, "Attaching from Application.");
-        this.super();
-
-        _self.testMovieClip();
-        _self.superTest();
-    };
-
-    this.testMovieClip      =   function testMovieClip(){
-        var mc              =   new MovieClip();
-            mc.init();
+        Out.debug(_self, "Attaching from CoreApplication.");
     };
 
     this.superTest          =   function superTest(){
-        alert("Called from Application");
-
-        this.super();
+        alert("Called from CoreApplication");
     };
 
 
@@ -66,9 +49,10 @@ Application         =   new (function(){
 
     // this is fired after all elements have been constructed
     this.init       =   function init(){
-        _self.attach();
+
     };
 
-    Sage.register(this);
-    return Sage.extend(this, 'CoreApplication', true);  // make this class extend CoreApplication
-})();
+    return Sage.create(_self);
+};
+
+Sage.register(CoreApplication);
