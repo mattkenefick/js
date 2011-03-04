@@ -1,9 +1,9 @@
 
 
 function Sprite($a){
-    var _self       =   this;
+    var __self          =   this;
 
-    this.name   =   "Sprite";
+    this.name           =   "Sprite";
 
     this.buttonMode     =   false;
     this.graphics       =   null;
@@ -37,6 +37,7 @@ function Sprite($a){
     this.init           =   function init(){
         console.log("Constructing Sprite");
         this.super();
+        this.x          =   40;
     };
 
     return Sage.extend(this, 'DisplayObject');

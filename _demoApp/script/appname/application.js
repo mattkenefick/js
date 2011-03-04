@@ -36,18 +36,19 @@ Application         =   new (function(){
         this.super();
 
         _self.testMovieClip();
-        _self.superTest();
+        //_self.superTest();
     };
 
     this.testMovieClip      =   function testMovieClip(){
         var mc              =   new MovieClip();
             mc.init();
+
+        console.log( mc.x );
     };
 
     this.superTest          =   function superTest(){
-        alert("Called from Application");
-
         this.super();
+        alert("Called from Application");
     };
 
 

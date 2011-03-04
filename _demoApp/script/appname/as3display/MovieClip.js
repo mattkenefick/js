@@ -1,7 +1,7 @@
 
 
 function MovieClip(){
-    var _self       =   this;
+    var __self      =   this;
 
     this.name       =   'MovieClip';
 
@@ -53,8 +53,8 @@ function MovieClip(){
 
     // Constructor function
     this.init               =   function init(){
-        console.log("Constructing MovieClip");
         this.super();
+        this.x =   50;
     };
 
     return Sage.extend(this, 'Sprite');

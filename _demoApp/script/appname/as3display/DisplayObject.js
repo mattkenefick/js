@@ -1,7 +1,7 @@
 // root class
 
 function DisplayObject(){
-    var _self       =   this;
+    var __self      =   this;
 
     this.name       =   "DisplayObject";
 
@@ -55,7 +55,7 @@ function DisplayObject(){
     // Constructor function
     this.init           =   function init(){
         console.log("Constructing DisplayObject" );
-        _self.x         =   55;
+
     };
 
     return Sage.create(this);

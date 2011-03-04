@@ -33,15 +33,13 @@ if(!window['Basil']){
     function Basil($name){
 
         // private vars
-        var _self = _me     =   this;
+        var _self           =   this;
+        var _hasOut         =   window['Out'] ? true : false;
         var _include        =   [];
         var _included       =   [];
         var _classes        =   [];
         var _extensions     =   {};
         var _isComplete     =   false;
-
-        // used for extending
-        var _lastClass      =   null;
 
         // public vars
         this.name           =   $name || 'Basil';
@@ -51,12 +49,36 @@ if(!window['Basil']){
     // ===== CALLABLE
     // ===========================================
 
+        /**
+         * forceComplete
+         *
+         * Allows user to force the complete event to be fired
+         * instead of waiting for Basil to figure out whether
+         * or not everything has downloaded.
+         *
+         * Should only be used if all files are compiled into
+         * one.
+         *
+         * @access  public
+         * @returns null
+         */
         this.forceComplete  =   function forceComplete(){
             _includeComplete();
+
+            return null;
         };
 
+        /**
+         * flush
+         *
+         * Clears out all saved data and arrays related to loading.
+         * This allows for a fresh start.
+         *
+         * @access  public
+         * @returns null
+         */
         this.flush          =   function flush(){
-            Out.debug(_self, "Flushing " + _self.name + " includes.");
+            if(_hasOut) Out.debug(_self, "Flushing " + _self.name + " includes.");
 
             _include        =   [];
             _included       =   [];
@@ -94,7 +116,7 @@ if(!window['Basil']){
 
                                 $classA[i]         =   function init(){
                                     return (function(){
-                                        this.super =   __2;
+                                        this.super  =   __2;
 
                                         return __1();
                                     })();
@@ -105,21 +127,21 @@ if(!window['Basil']){
                 };
 
             }else if($isStatic){
-                Out.debug(_self, "Extending " + $classA.name + " with " + $classB );
+                if(_hasOut) Out.debug(_self, "Extending " + $classA.name + " with " + $classB );
                 _extensions[$classA.name]   =   $classB;
                 return $classA;
 
             }else if(typeof(window[$classB]) == 'object'){
                 // static class extension
                 if(window[$classB]==undefined){
-                    Out.error(_self, "Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
+                    if(_hasOut) Out.error(_self, "Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
                 }else{
                     var _t  =   $.extend(_t, window[$classB]);
-                    Out.debug(_self, "Extending static class");
+                    if(_hasOut) Out.debug(_self, "Extending static class");
                 }
             }else{
                 // error
-                Out.error(_self, "Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
+                if(_hasOut) Out.error(_self, "Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
             };
 
             _t              =   $.extend(true, _t, $classA);
@@ -147,13 +169,13 @@ if(!window['Basil']){
 
         this.include        =   function include($file){
             if(_isDuplicateInclude($file)){
-                Out.warning(_self, "Already included: " + $file);
+                if(_hasOut) Out.warning(_self, "Already included: " + $file);
                 return;
             };
 
             // save
             _include.push($file);
-            Out.debug(_me, "Including: " + $file);
+            if(_hasOut) Out.debug(_self, "Including: " + $file);
 
             $.ajax({
                 contentType:        'text/javascript',
@@ -164,7 +186,7 @@ if(!window['Basil']){
         };
 
         this.execute         =   function execute($params){
-            Out.debug(_me, "Executing: " + $params.url);
+            if(_hasOut) Out.debug(_self, "Executing: " + $params.url);
 
             $.ajax({
                 contentType:        'text/javascript',
@@ -173,7 +195,7 @@ if(!window['Basil']){
                 complete:           function execute_complete($data){
 
                     if(!$data){
-                        Out.error(_self, "Check that you are on a correct domain and do not need proxy.");
+                        if(_hasOut) Out.error(_self, "Check that you are on a correct domain and do not need proxy.");
                         return;
                     };
 
@@ -181,7 +203,7 @@ if(!window['Basil']){
                     var name    =   $data.responseText.match(pattern);
                         name    =   name[1];
 
-                    Out.debug(_self, "Name should be: " + name);
+                    if(_hasOut) Out.debug(_self, "Name should be: " + name);
 
                     if(window[name] && window[name].construct)
                         window[name].construct($params);
@@ -223,7 +245,7 @@ if(!window['Basil']){
 
             _isComplete =   true;
 
-            Out.debug(_self, "Downloads complete... Waiting for document load.");
+            if(_hasOut) Out.debug(_self, "Downloads complete... Waiting for document load.");
 
             $(document).ready(function(){
                 // initial construct, we used two basically
@@ -231,7 +253,7 @@ if(!window['Basil']){
                 for( i in _classes ){
                     if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                         if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
-                            Out.error(_self, _classes[i].name + " doesn't have construct method");
+                            if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have construct method");
                         }else{
                             _classes[i].construct();
                         }
@@ -247,7 +269,7 @@ if(!window['Basil']){
                             if(window[_classes[ii].name]['setSelf'])
                                 window[_classes[ii].name]['setSelf']( window[_classes[ii].name] );
                             else
-                                Out.warning(_self, "Using old reference of self on class " + _classes[ii].name);
+                                if(_hasOut) Out.warning(_self, "Using old reference of self on class " + _classes[ii].name);
                         };
                     };
                     //}
@@ -258,7 +280,7 @@ if(!window['Basil']){
                 for( i in _classes ){
                     if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                         if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
-                            Out.error(_self, _classes[i].name + " doesn't have init method");
+                            if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have init method");
                         }else{
                             _classes[i].init();
                         }
