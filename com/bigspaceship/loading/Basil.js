@@ -103,9 +103,10 @@ if(!window['Basil']){
                 // insantiable extension
                 _t  =   new window[$classB]();
 
-                // create supers
+                // create supers for all elements inside of the class.
                 for(var i in _t){
                     _c2 =   _t[i];
+                    // class actually exists.. do work in here
                     if(typeof(_c2)=='function'){
 
                         if($classA[i]){
@@ -146,6 +147,8 @@ if(!window['Basil']){
 
             _t              =   $.extend(true, _t, $classA);
             _t.name         =   _n;
+            if(_t['setSelf'])
+                _t.setSelf(_t);
 
             return _t;
         };
@@ -266,10 +269,10 @@ if(!window['Basil']){
                     for(ii in _classes){
                         if(_classes[ii].name == i){
                             window[_classes[ii].name]   =   _self.extend(_classes[ii], _extensions[i]);
-                            if(window[_classes[ii].name]['setSelf'])
-                                window[_classes[ii].name]['setSelf']( window[_classes[ii].name] );
-                            else
-                                if(_hasOut) Out.warning(_self, "Using old reference of self on class " + _classes[ii].name);
+                            //if(window[_classes[ii].name]['setSelf'])
+                                //window[_classes[ii].name]['setSelf']( window[_classes[ii].name] );
+                            //else
+                            //   if(_hasOut) Out.warning(_self, "Using old reference of self on class " + _classes[ii].name);
                         };
                     };
                     //}
