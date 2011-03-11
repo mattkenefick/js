@@ -53,7 +53,7 @@ function DisplayObject(){
 //  ==========================================================
 
     // Constructor function
-    this.init           =   function init(){
+    this._init           =   function displayobject_init(){
         console.log("Constructing DisplayObject" );
 
     };

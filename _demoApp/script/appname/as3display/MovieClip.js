@@ -52,9 +52,9 @@ function MovieClip(){
 //  ==========================================================
 
     // Constructor function
-    this.init               =   function init(){
+    this._init               =   function movieclip_init(){
         this.super();
-        this.x =   50;
+        _self.x =   50;
     };
 
     return Sage.extend(this, 'Sprite');

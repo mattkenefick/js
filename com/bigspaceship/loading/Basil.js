@@ -43,6 +43,7 @@ if(!window['Basil']){
 
         // public vars
         this.name           =   $name || 'Basil';
+        this.baseUrl        =   '';
 
 
     // ===========================================
@@ -114,10 +115,9 @@ if(!window['Basil']){
                                 var __1 =   $.extend($classA[i], []);
                                 var __2 =   $.extend(_t[i], []);
 
-                                $classA[i]         =   function init(){
-                                    return (function(){
+                                $classA[i]         =   function _extended_function(){
+                                    return (function _superClass(){
                                         this.super  =   __2;
-
                                         return __1();
                                     })();
                                 };
@@ -180,7 +180,7 @@ if(!window['Basil']){
             $.ajax({
                 contentType:        'text/javascript',
                 dataType:           'script',
-                url:                $file,
+                url:                _self.baseUrl + $file,
                 complete:           _include_COMPLETE_handler
             });
         };
@@ -191,7 +191,7 @@ if(!window['Basil']){
             $.ajax({
                 contentType:        'text/javascript',
                 dataType:           'script',
-                url:                $params.url,
+                url:                _self.baseUrl + $params.url,
                 complete:           function execute_complete($data){
 
                     if(!$data){

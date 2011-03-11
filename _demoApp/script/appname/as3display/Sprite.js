@@ -9,6 +9,7 @@ function Sprite($a){
     this.graphics       =   null;
     this.hitArea        =   null;
     this.useHandCursor  =   false;
+    this.x              =   100;
 
 
 //  ==========================================================
@@ -34,7 +35,7 @@ function Sprite($a){
 //  ==========================================================
 
     // Constructor function
-    this.init           =   function init(){
+    this._init           =   function sprite_init(){
         console.log("Constructing Sprite");
         this.super();
         this.x          =   40;

@@ -43,12 +43,12 @@ function CoreApplication() {
 // ===========================================
 
     // constructor should immediately happen on doc load
-    this.construct  =   function construct(){
+    this.construct  =   function coreapplication_construct(){
 
     };
 
     // this is fired after all elements have been constructed
-    this.init       =   function init(){
+    this.init       =   function coreapplication_init(){
 
     };
 

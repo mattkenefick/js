@@ -4,7 +4,6 @@ Sage.include(APP_JSURL + "as3display/Sprite.js");
 Sage.include(APP_JSURL + "as3display/DisplayObject.js");
 Sage.include(APP_JSURL + "core-application.js");
 
-
 /**
 * Application
 *
@@ -41,8 +40,9 @@ Application         =   new (function(){
 
     this.testMovieClip      =   function testMovieClip(){
         var mc              =   new MovieClip();
-            mc.init();
+            mc._init();
 
+        console.log("Calling MC init... Super chain will be invoked... X should be 50");
         console.log( mc.x );
     };
 
@@ -61,12 +61,12 @@ Application         =   new (function(){
 // ===========================================
 
     // constructor should immediately happen on doc load
-    this.construct  =   function construct(){
+    this.construct  =   function application_construct(){
 
     };
 
     // this is fired after all elements have been constructed
-    this.init       =   function init(){
+    this.init       =   function application_init(){
         _self.attach();
     };
 

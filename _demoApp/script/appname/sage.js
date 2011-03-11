@@ -8,6 +8,28 @@ if( Application ){
     var Application;
 }
 
+
+
+/**
+* Error Handler
+*
+* This is the global error handler that helps debug
+* where problems may be.
+*
+* @version 1.0
+* @author Matt Kenefick <m.kenefick@bigspaceship.com>
+* @project Demo App
+*/
+$(window).bind('error',  function onError($msg, $2, $line){
+    $line   =   $msg.originalEvent;
+    $msg    =   $line.message;
+    $line   =   $line.lineno;
+    console.log("Error found: Showing debugger.");
+    window.open(APP_JSURL + 'debug.php?line=' + $line + "&error=" + escape($msg), "Debugger", "width=500,height=500,top=0,left=0");
+    return true;
+});
+
+
 /**
 * Sage
 *
