@@ -30,7 +30,7 @@ if(!window['Basil']){
     * @author   Matt Kenefick <m.kenefick@bigspaceship.com>
     * @package  Big Spaceship / Loading
     */
-    function Basil($name){
+    function Basil($name, $baseUrl){
 
         // private vars
         var _self           =   this;
@@ -42,8 +42,8 @@ if(!window['Basil']){
         var _isComplete     =   false;
 
         // public vars
-        this.name           =   $name || 'Basil';
-        this.baseUrl        =   '';
+        this.name           =   $name       || 'Basil';
+        this.baseUrl        =   $baseUrl    || '';
 
 
     // ===========================================
@@ -171,13 +171,13 @@ if(!window['Basil']){
     // ===========================================
 
         this.include        =   function include($file){
-            if(_isDuplicateInclude($file)){
+            if(_isDuplicateInclude(_self.baseUrl + $file)){
                 if(_hasOut) Out.warning(_self, "Already included: " + $file);
                 return;
             };
 
             // save
-            _include.push($file);
+            _include.push(_self.baseUrl + $file);
             if(_hasOut) Out.debug(_self, "Including: " + $file);
 
             $.ajax({
@@ -191,10 +191,14 @@ if(!window['Basil']){
         this.execute         =   function execute($params){
             if(_hasOut) Out.debug(_self, "Executing: " + $params.url);
 
+            var baseUrl =   $params.url.split('/');
+                baseUrl.pop();
+                baseUrl =   baseUrl.join('/') + '/';
+
             $.ajax({
                 contentType:        'text/javascript',
                 dataType:           'script',
-                url:                _self.baseUrl + $params.url,
+                url:                $params.url,
                 complete:           function execute_complete($data){
 
                     if(!$data){
@@ -208,8 +212,21 @@ if(!window['Basil']){
 
                     if(_hasOut) Out.debug(_self, "Name should be: " + name);
 
-                    if(window[name] && window[name].construct)
+                    // add basil and public methods
+                    if(window[name]){
+                        window[name].basil      =   new Basil(window[name].name);
+                        window[name].basil.baseUrl      =   baseUrl;
+                        window[name].assets     =   baseUrl + 'assets/';
+                        window[name].getAsset   =   function getAsset($url){
+                            return window[name].assets + $url;
+                        };
+                    };
+
+                    // construct it
+                    if(window[name] && window[name].construct){
                         window[name].construct($params);
+                    }
+
                 }
             });
         };
@@ -250,50 +267,54 @@ if(!window['Basil']){
 
             if(_hasOut) Out.debug(_self, "Downloads complete... Waiting for document load.");
 
-            $(document).ready(function(){
-                // initial construct, we used two basically
-                // because of the DOM
-                for( i in _classes ){
-                    if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
-                        if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
-                            if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have construct method");
-                        }else{
-                            _classes[i].construct();
-                        }
+            if(window['___DOCUMENT_LOADED']){
+                _extendAndInitiate();
+            }else{
+                $(document).ready(_extendAndInitiate);
+            };
+        };
+
+        function _extendAndInitiate(){
+            ___DOCUMENT_LOADED  =   true;
+
+            // initial construct, we used two basically
+            // because of the DOM
+            for( i in _classes ){
+                if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
+                    if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
+                        if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have construct method");
+                    }else{
+                        _classes[i].construct();
+                    }
+                }
+            };
+
+            // secondly we're going to extend our classes that asked for it
+            for( i in _extensions ){
+                for(ii in _classes){
+                    if(_classes[ii].name == i){
+                        window[_classes[ii].name]   =   _self.extend(_classes[ii], _extensions[i]);
+                    };
+                };
+            };
+
+            // we fire init first so that elements that need
+            // to be constructed can be formed first.
+            for( i in _classes ){
+                if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
+                    if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
+                        if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have init method");
+                    }else{
+                        _classes[i].init();
                     }
                 };
+            };
 
-                // secondly we're going to extend our classes that asked for it
-                for( i in _extensions ){
-                    //if(Array.prototype[i] != _extensions[i]){
-                    for(ii in _classes){
-                        if(_classes[ii].name == i){
-                            window[_classes[ii].name]   =   _self.extend(_classes[ii], _extensions[i]);
-                            //if(window[_classes[ii].name]['setSelf'])
-                                //window[_classes[ii].name]['setSelf']( window[_classes[ii].name] );
-                            //else
-                            //   if(_hasOut) Out.warning(_self, "Using old reference of self on class " + _classes[ii].name);
-                        };
-                    };
-                    //}
-                };
+            // fire complete function if it exists
+            if(_self.complete)
+                _self.complete();
 
-                // we fire init first so that elements that need
-                // to be constructed can be formed first.
-                for( i in _classes ){
-                    if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
-                        if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
-                            if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have init method");
-                        }else{
-                            _classes[i].init();
-                        }
-                    };
-                };
-
-                // fire complete function if it exists
-                if(_self.complete)
-                    _self.complete();
-            });
+            if(_hasOut) Out.debug(_self, "Classes construct/extend/init completed.");
         };
 
         function _findClassByName($name){
