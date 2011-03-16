@@ -156,11 +156,14 @@ if(!window['Basil']){
                                 var __1 =   $.extend($classA[i], []);
                                 var __2 =   $.extend(_t[i], []);
 
-                                $classA[i]         =   function _extended_function(){
+                                // TODO: temp fix for when you passed an argument
+                                // to a function that had a super, no arguments would
+                                // be passed along with. this caps at 6
+                                $classA[i]         =   function _extended_function($a1, $a2, $a3, $a4, $a5, $a6){
                                     return (function _superClass(){
                                         this.super  =   __2;
-                                        return __1();
-                                    })();
+                                        return __1($a1, $a2, $a3, $a4, $a5, $a6);
+                                    })($a1, $a2, $a3, $a4, $a5, $a6);
                                 };
                             })();
                         }
