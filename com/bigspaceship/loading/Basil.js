@@ -34,7 +34,6 @@ if(!window['Basil']){
 
         // private vars
         var _self           =   this;
-        var _hasOut         =   window['Out'] ? true : false;
         var _include        =   [];
         var _included       =   [];
         var _classes        =   [];
@@ -44,6 +43,7 @@ if(!window['Basil']){
         // public vars
         this.name           =   $name       || 'Basil';
         this.baseUrl        =   $baseUrl    || '';
+        this.debug          =   'Out';      // Object, Out, true, false
 
 
     // ===========================================
@@ -60,13 +60,14 @@ if(!window['Basil']){
          * Should only be used if all files are compiled into
          * one.
          *
+         * Ex:
+         *  Sage.forceComplete();
+         *
          * @access  public
-         * @returns null
+         * @returns void
          */
         this.forceComplete  =   function forceComplete(){
             _includeComplete();
-
-            return null;
         };
 
         /**
@@ -75,17 +76,34 @@ if(!window['Basil']){
          * Clears out all saved data and arrays related to loading.
          * This allows for a fresh start.
          *
+         * Ex:
+         *  Sage.flush();
+         *
          * @access  public
-         * @returns null
+         * @returns void
          */
         this.flush          =   function flush(){
-            if(_hasOut) Out.debug(_self, "Flushing " + _self.name + " includes.");
+            _debug("Flushing " + _self.name + " includes.");
 
             _include        =   [];
             _included       =   [];
             _classes        =   [];
         };
 
+        /**
+         * register
+         *
+         * Add class reference to `_classes` variable. This is required
+         * if you want to construct, extend, and init a class. If you
+         * don't, then you do not need this. This shouldn't be applied
+         * to instantiable classes.
+         *
+         * Ex:
+         *  Sage.register(_self);
+         *
+         * @param   $class  Object of containing class
+         * @return  void
+         */
         this.register       =   function register($class){
             _classes.push($class);
         };
@@ -95,6 +113,23 @@ if(!window['Basil']){
     // ===== Class Creation
     // ===========================================
 
+        /**
+         * extend
+         *
+         * Will extend classA with classB. Copies over functions
+         * that don't exist, rewrites functions that do exist and
+         * inserts old function into it to create a mini anonymous
+         * class where you can call `super`.
+         *
+         * Ex:
+         *  return Sage.extend(_self, 'BaseObject');
+         *  // or
+         *  return Sage.extend(_self, 'ParentObject', true); // used for static classes
+         *
+         * @param   $classA     Usually _self. Class you want to extend into.
+         * @param   $classB     String name of class you want to extend.
+         * @return  Class<Object>
+         */
         this.extend         =   function extend($classA, $classB, $isStatic){
             var _n          =   $classA.name;
             var _t, _c, _c1, _c2;
@@ -128,21 +163,21 @@ if(!window['Basil']){
                 };
 
             }else if($isStatic){
-                if(_hasOut) Out.debug(_self, "Extending " + $classA.name + " with " + $classB );
+                _debug("Delayed Extending " + $classA.name + " with " + $classB + '[class hasnt loaded yet]' );
                 _extensions[$classA.name]   =   $classB;
                 return $classA;
 
             }else if(typeof(window[$classB]) == 'object'){
                 // static class extension
                 if(window[$classB]==undefined){
-                    if(_hasOut) Out.error(_self, "Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
+                    _debug("Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
                 }else{
                     var _t  =   $.extend(_t, window[$classB]);
-                    if(_hasOut) Out.debug(_self, "Extending static class");
+                    _debug("Extending static class");
                 }
             }else{
                 // error
-                if(_hasOut) Out.error(_self, "Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
+                _debug("Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
             };
 
             _t              =   $.extend(true, _t, $classA);
@@ -153,6 +188,20 @@ if(!window['Basil']){
             return _t;
         };
 
+        /**
+         * create
+         *
+         * This should be used as the return for the base class of
+         * an extension, like DisplayObject, or Object. Something low
+         * level. Right now it just returns the class, but it could
+         * be used for something in the future so we use it.
+         *
+         * Ex:
+         *  return Sage.create(_self);
+         *
+         * @param   $class  Object containing class
+         * @return  Class<Object>
+         */
         this.create         =   function create($class){
             _lastClass  =   $class;
             return $class;
@@ -170,15 +219,29 @@ if(!window['Basil']){
     // ===== Inclusion
     // ===========================================
 
+        /**
+         * include
+         *
+         * Adds file to include to the project. Detects
+         * duplicates and ignores their request to be
+         * downloaded. Uses jQuery AJAX to download scripts.
+         * Sends downloaded files to _include_COMPLETE_handler
+         *
+         * Ex:
+         *  Sage.include('views/main.js');
+         *
+         * @param   $file   String of the URL. Auto prepends BaseURL.
+         * @return  void
+         */
         this.include        =   function include($file){
             if(_isDuplicateInclude(_self.baseUrl + $file)){
-                if(_hasOut) Out.warning(_self, "Already included: " + $file);
+                _debug("Already included: " + $file);
                 return;
             };
 
             // save
             _include.push(_self.baseUrl + $file);
-            if(_hasOut) Out.debug(_self, "Including: " + $file);
+            _debug("Including: " + $file);
 
             $.ajax({
                 contentType:        'text/javascript',
@@ -188,8 +251,29 @@ if(!window['Basil']){
             });
         };
 
+        /**
+         * execute
+         *
+         * Used to call and instantiate individual scripts. This
+         * is meant for packages of other classes. For example, an
+         * ad that is lazily loaded to the DOM after the main site
+         * loads. Destination file must have a "name" property matching
+         * the global classname. Requested class gets "construct"
+         * but not "init".
+         *
+         * Currently does not allow extensions from here. But the internal
+         * basil applied can do that for the package itself.
+         *
+         * Ex:
+         *  Sage.execute({
+         *      url:    Sage.baseUrl + '../example/Application.js'
+         *  });
+         *
+         * @param   $params     Only param now is "url"
+         * @return  void
+         */
         this.execute         =   function execute($params){
-            if(_hasOut) Out.debug(_self, "Executing: " + $params.url);
+            _debug("Executing: " + $params.url);
 
             var baseUrl =   $params.url.split('/');
                 baseUrl.pop();
@@ -202,7 +286,7 @@ if(!window['Basil']){
                 complete:           function execute_complete($data){
 
                     if(!$data){
-                        if(_hasOut) Out.error(_self, "Check that you are on a correct domain and do not need proxy.");
+                        _debug("Check that you are on a correct domain and do not need proxy.");
                         return;
                     };
 
@@ -210,7 +294,7 @@ if(!window['Basil']){
                     var name    =   $data.responseText.match(pattern);
                         name    =   name[1];
 
-                    if(_hasOut) Out.debug(_self, "Name should be: " + name);
+                    _debug("Name should be: " + name);
 
                     // add basil and public methods
                     if(window[name]){
@@ -236,19 +320,59 @@ if(!window['Basil']){
     // ===== WORKERS
     // ===========================================
 
-        function _proxify($url){
-            var url =   $url;
-
-            if(url.indexOf('http://') > -1 ){
-                url =   BASEURL + "proxy.php?file=" + url;
-
-            }else{
-                url =   BASEURL + url;
+        /**
+         * _debug
+         *
+         * Used by Basil to choose a debugger. Right now
+         * accepts "Out" class, console, and none.
+         *
+         * Ex:
+         *  _debug("Test debug message");
+         *
+         * @param   $message    Message to debug, could be an object.
+         * @return  void
+         */
+        function _debug($message){
+            switch(_self.debug){
+                case 'Out':
+                    if(window['Out']) Out.debug(_self, $message);
+                    break;
+                case true:
+                    if(window['console']) console.log($message);
+                    break;
             };
-
-            return url;
         };
 
+        /**
+         * _findClassByName
+         *
+         * Cycles through all registered classes and checks their
+         * public `name` property to see if it is a match.
+         *
+         * @param   $name   String name of the class
+         * @return  Class<Object>
+         */
+        function _findClassByName($name){
+            for(var i in _classes){
+                if(_classes[i] == $name){
+                    return _classes[i];
+                };
+            };
+
+            return window[$name];
+        };
+
+        /**
+         * _isDuplicateInclude
+         *
+         * Checks to see if this file has been added already.
+         *
+         * Ex:
+         *  if( _isDuplicateFile('myFile.js')) { ...
+         *
+         * @param   $file   String URL of file
+         * @return  boolean
+         */
         function _isDuplicateInclude($file){
             if(
                 _include.indexOf($file) > -1
@@ -260,12 +384,22 @@ if(!window['Basil']){
             return false;
         };
 
+        /**
+         * _includeComplete
+         *
+         * Executes when all files have been downloaded. Sets a variable
+         * that this has executed so we don't perform this process more
+         * than once by accident. Sets to the Document.Ready if it hasn't
+         * already fired. Otherwise, executes directly.
+         *
+         * Called by either forceComplete immediately.
+         * Or by the complete handler with a timeout of 500ms.
+         *
+         * @return void
+         */
         function _includeComplete(){
-            var i;
-
+            _debug("Downloads complete... Waiting for document load.");
             _isComplete =   true;
-
-            if(_hasOut) Out.debug(_self, "Downloads complete... Waiting for document load.");
 
             if(window['___DOCUMENT_LOADED']){
                 _extendAndInitiate();
@@ -274,7 +408,19 @@ if(!window['Basil']){
             };
         };
 
+        /**
+         * _extendAndInitiate
+         *
+         * Goes through all registered classes and attempts to fire their
+         * construct function, then tries to extend them, finally fires
+         * their init function. When all is complete, it calls the optional
+         * Sage.complete function as a callback.
+         *
+         * @return void
+         */
         function _extendAndInitiate(){
+            var i;
+
             ___DOCUMENT_LOADED  =   true;
 
             // initial construct, we used two basically
@@ -282,7 +428,7 @@ if(!window['Basil']){
             for( i in _classes ){
                 if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                     if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
-                        if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have construct method");
+                        _debug(_classes[i].name + " doesn't have construct method");
                     }else{
                         _classes[i].construct();
                     }
@@ -303,7 +449,7 @@ if(!window['Basil']){
             for( i in _classes ){
                 if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                     if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
-                        if(_hasOut) Out.error(_self, _classes[i].name + " doesn't have init method");
+                        _debug(_classes[i].name + " doesn't have init method");
                     }else{
                         _classes[i].init();
                     }
@@ -314,17 +460,7 @@ if(!window['Basil']){
             if(_self.complete)
                 _self.complete();
 
-            if(_hasOut) Out.debug(_self, "Classes construct/extend/init completed.");
-        };
-
-        function _findClassByName($name){
-            for(var i in _classes){
-                if(_classes[i] == $name){
-                    return _classes[i];
-                };
-            };
-
-            return window[$name];
+            _debug("Classes construct/extend/init completed.");
         };
 
 
@@ -332,7 +468,19 @@ if(!window['Basil']){
     // ===== HANDLERS
     // ===========================================
 
-        function _include_COMPLETE_handler($data){
+        /**
+         * _include_COMPLETE_handler
+         *
+         * Fired by the AJAX event from `include`. Marks down
+         * that a class has been downloaded and checks to see
+         * if that means all of them have finished. If the
+         * amount of classes downloaded matches that of the
+         * requested.. it fires the _includeComplete function.
+         *
+         * @param   $e      Event from AJAX request
+         * @return  void
+         */
+        function _include_COMPLETE_handler($e){
             var lastRequested           =   _include[_included.length];
             _included[lastRequested]    =   1;
             _included.push(lastRequested);
@@ -344,6 +492,10 @@ if(!window['Basil']){
             }, 500);
         };
 
+
+    // ===========================================
+    // ===== CONSTRUCTOR
+    // ===========================================
 
         return this;
     };
