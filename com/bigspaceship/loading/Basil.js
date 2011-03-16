@@ -44,6 +44,8 @@ if(!window['Basil']){
         this.name           =   $name       || 'Basil';
         this.baseUrl        =   $baseUrl    || '';
         this.debug          =   'Out';      // Object, Out, true, false
+        this.complete       =   null;       // fired on everything's completion.
+        this.errors         =   [];
 
 
     // ===========================================
@@ -88,6 +90,9 @@ if(!window['Basil']){
             _include        =   [];
             _included       =   [];
             _classes        =   [];
+            _isComplete     =   false;
+            _self.complete  =   null;
+            _self.errors    =   [];
         };
 
         /**
@@ -230,10 +235,20 @@ if(!window['Basil']){
          * Ex:
          *  Sage.include('views/main.js');
          *
-         * @param   $file   String of the URL. Auto prepends BaseURL.
+         * @param   $file               String of the URL. Auto prepends BaseURL.
+         * @param   $flushAndCallback   A function callback when new basil is completed
          * @return  void
          */
-        this.include        =   function include($file){
+        this.include        =   function include($file, $flushAndCallback){
+            // assume we want to reset the basil and
+            // start over. good for on-demand loading
+            // controllers and such
+            if($flushAndCallback){
+                _self.flush();
+                _self.complete  =   $flushAndCallback;
+            };
+
+            // ignore inclusion if it's already downloading
             if(_isDuplicateInclude(_self.baseUrl + $file)){
                 _debug("Already included: " + $file);
                 return;
@@ -247,7 +262,10 @@ if(!window['Basil']){
                 contentType:        'text/javascript',
                 dataType:           'script',
                 url:                _self.baseUrl + $file,
-                complete:           _include_COMPLETE_handler
+                complete:           _include_COMPLETE_handler,
+                error:              function($jqXHR, $text, $error){
+                    _include_ERROR_handler(_self.baseUrl + $file, $jqXHR, $text, $error);
+                }
             });
         };
 
@@ -319,6 +337,33 @@ if(!window['Basil']){
     // ===========================================
     // ===== WORKERS
     // ===========================================
+
+        /**
+         * _printErrors
+         *
+         * Debugs the list of possible errors collected.
+         * This consists of files that were attempted to
+         * be included but couldn't be found.
+         *
+         * Ex:
+         *  _printErrors();
+         *
+         * @return  void
+         */
+        function _printErrors(){
+            var i = 0, l = _self.errors.length;
+
+            // start title
+            _debug("");
+            _debug("========================================================");
+            _debug("                    " + l + " Errors found");
+            _debug("========================================================");
+
+            for(i; i < l; i++){
+                _debug(_self.errors[i]);
+                _debug("--------------------------------------------------------");
+            }
+        };
 
         /**
          * _debug
@@ -461,6 +506,11 @@ if(!window['Basil']){
                 _self.complete();
 
             _debug("Classes construct/extend/init completed.");
+
+            // show any errors
+            if(_self.errors.length){
+                _printErrors();
+            };
         };
 
 
@@ -490,6 +540,16 @@ if(!window['Basil']){
                     _includeComplete();
                 };
             }, 500);
+        };
+
+        function _include_ERROR_handler($file, $jqXHR, $text, $error){
+            _self.errors.push([
+                "\nFile: ",
+                $file,
+                "\nMessage: ",
+                $jqXHR['status'] + ' ' + $error,
+                "\n\n"
+            ].join(''));
         };
 
 
