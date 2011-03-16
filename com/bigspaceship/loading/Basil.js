@@ -251,23 +251,27 @@ if(!window['Basil']){
                 _self.complete  =   $flushAndCallback;
             };
 
+            var fullFile    =   _self.baseUrl + $file;
+            if($file.substr(0,4) == 'http')
+                fullFile    =   $file;
+
             // ignore inclusion if it's already downloading
-            if(_isDuplicateInclude(_self.baseUrl + $file)){
+            if(_isDuplicateInclude(fullFile)){
                 _debug("Already included: " + $file);
                 return;
             };
 
             // save
-            _include.push(_self.baseUrl + $file);
+            _include.push(fullFile);
             _debug("Including: " + $file);
 
             $.ajax({
                 contentType:        'text/javascript',
                 dataType:           'script',
-                url:                _self.baseUrl + $file,
+                url:                fullFile,
                 complete:           _include_COMPLETE_handler,
                 error:              function($jqXHR, $text, $error){
-                    _include_ERROR_handler(_self.baseUrl + $file, $jqXHR, $text, $error);
+                    _include_ERROR_handler(fullFile, $jqXHR, $text, $error);
                 }
             });
         };
