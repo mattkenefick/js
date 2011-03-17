@@ -156,8 +156,8 @@ if(!window['Basil']){
                             // this only fires when ClassB (under) has the same
                             // function as ClassA (above).. then we super
                             (function(){
-                                var __1 =   $.extend($classA[i], []);
-                                var __2 =   $.extend(_t[i], []);
+                                var __1 =   _extend($classA[i], []);
+                                var __2 =   _extend(_t[i], []);
 
                                 // TODO: temp fix for when you passed an argument
                                 // to a function that had a super, no arguments would
@@ -183,7 +183,7 @@ if(!window['Basil']){
                 if(window[$classB]==undefined){
                     _debug("Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
                 }else{
-                    var _t  =   $.extend(_t, window[$classB]);
+                    var _t  =   _extend(_t, window[$classB]);
                     _debug("Extending static class");
                 }
             }else{
@@ -191,7 +191,7 @@ if(!window['Basil']){
                 _debug("Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
             };
 
-            _t              =   $.extend(true, _t, $classA);
+            _t              =   _extend(_t, $classA);
             _t.name         =   _n;
             if(_t['setSelf'])
                 _t.setSelf(_t);
@@ -287,7 +287,7 @@ if(!window['Basil']){
                 _include.push(fullFile);
                 _debug("Including: " + file);
 
-                $.ajax({
+                _ajax({
                     contentType:        'text/javascript',
                     dataType:           'script',
                     url:                fullFile,
@@ -327,7 +327,7 @@ if(!window['Basil']){
                 baseUrl.pop();
                 baseUrl =   baseUrl.join('/') + '/';
 
-            $.ajax({
+            _ajax({
                 contentType:        'text/javascript',
                 dataType:           'script',
                 url:                $params.url,
@@ -367,6 +367,50 @@ if(!window['Basil']){
     // ===========================================
     // ===== WORKERS
     // ===========================================
+
+        function _extend($classA, $classB){
+            for(var i in $classB){
+                if(!$classA[i])
+                    $classA[i]  =   $classB[i];
+            };
+
+            return $classA;
+        };
+
+        function _ajax($params){
+            // use jquery
+           // if($ && $.ajax){ $.ajax($params);return;}
+
+            // include to head
+            var script,
+                head = document.head || document.getElementsByTagName( "head" )[0] || document.documentElement;
+
+            script          =   document.createElement( "script" );
+            script.async    =   "async";
+            script.src      =   $params.url;
+            script.onload   =   script.onreadystatechange = function( _, isAbort ) {
+                if(!script.readyState || /loaded|complete/.test(script.readyState)){
+                    // Handle memory leak in IE
+                    script.onload = script.onreadystatechange = null;
+
+                    // Remove the script
+                    if(head && script.parentNode) {
+                        head.removeChild(script);
+                    };
+
+                    // Dereference the script
+                    script = undefined;
+
+                    // Callback if not abort
+                    if (!isAbort) {
+                        $params.complete();
+                    }
+                }
+            };
+            // Use insertBefore instead of appendChild  to circumvent an IE6 bug.
+            // This arises when a base node is used (#2709 and #4378).
+            head.insertBefore( script, head.firstChild );
+        };
 
         /**
          * _printErrors
@@ -472,14 +516,22 @@ if(!window['Basil']){
          *
          * @return void
          */
-        function _includeComplete(){
-            _debug("Downloads complete... Waiting for document load.");
-            _isComplete =   true;
-
+        var drInt   =   null;
+        function _includeComplete($boolean){
             if(window['___DOCUMENT_LOADED']){
+                _debug("Downloads complete... Waiting for document load.");
+                _isComplete =   true;
+
                 _extendAndInitiate();
+                clearInterval(drInt);
+                drInt   =   null;
             }else{
-                $(document).ready(_extendAndInitiate);
+                if(!$boolean)
+                var script      =   document.createElement( "script" );
+                    script.text =   "___DOCUMENT_LOADED = true;";
+                    document.body.appendChild(script);
+                    document.body.removeChild(script);
+                    drInt       =   setInterval(_includeComplete, 50, [true]);
             };
         };
 
@@ -489,7 +541,7 @@ if(!window['Basil']){
          * Goes through all registered classes and attempts to fire their
          * construct function, then tries to extend them, finally fires
          * their init function. When all is complete, it calls the optional
-         * basilInstance.complete function as a callback.
+         * basilInstance.complete function as a callback.XMLHttpRequest
          *
          * @return void
          */
@@ -538,7 +590,7 @@ if(!window['Basil']){
             _debug("Classes construct/extend/init completed.");
 
             // show any errors
-            if(_self.errors.length){
+            if(_self.errors && _self.errors.length){
                 _printErrors();
             };
         };
