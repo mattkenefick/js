@@ -26,6 +26,9 @@ if(!window['Basil']){
     *
     * This is the global loader for all javascript files.
     *
+    * Ex Usage:
+    *   var YourSiteName    =   new Basil('site');
+    *
     * @version  1.0
     * @author   Matt Kenefick <m.kenefick@bigspaceship.com>
     * @package  Big Spaceship / Loading
@@ -238,42 +241,54 @@ if(!window['Basil']){
          * Ex:
          *  Sage.include('views/main.js');
          *
-         * @param   $file               String of the URL. Auto prepends BaseURL.
+         * @param   $files              String of the URL. Auto prepends BaseURL.
          * @param   $flushAndCallback   A function callback when new basil is completed
          * @return  void
          */
-        this.include        =   function include($file, $flushAndCallback){
+        this.include        =   function include(){
+            var i, fullFile, file;
+            var args        =   arguments;
+
             // assume we want to reset the basil and
             // start over. good for on-demand loading
             // controllers and such
-            if($flushAndCallback){
+            if(typeof(args[args.length-1]) == 'function'){
                 _self.flush();
-                _self.complete  =   $flushAndCallback;
+                _self.complete  =   args[args.length-1];
             };
 
-            var fullFile    =   _self.baseUrl + $file;
-            if($file.substr(0,4) == 'http')
-                fullFile    =   $file;
+            // loop through possible args
+            for(i = 0, l = args.length; i < l; i++){
+                file        =   args[i];
 
-            // ignore inclusion if it's already downloading
-            if(_isDuplicateInclude(fullFile)){
-                _debug("Already included: " + $file);
-                return;
+                // dont execute if it's a function
+                if(typeof(file) == 'function') continue;
+
+                // include
+                fullFile    =   _self.baseUrl + file;
+                if(file.substr(0,4) == 'http')
+                    fullFile    =   file;
+
+                // ignore inclusion if it's already downloading
+                if(_isDuplicateInclude(fullFile)){
+                    _debug("Already included: " + file);
+                    return;
+                };
+
+                // save
+                _include.push(fullFile);
+                _debug("Including: " + file);
+
+                $.ajax({
+                    contentType:        'text/javascript',
+                    dataType:           'script',
+                    url:                fullFile,
+                    complete:           _include_COMPLETE_handler,
+                    error:              function($jqXHR, $text, $error){
+                        _include_ERROR_handler(fullFile, $jqXHR, $text, $error);
+                    }
+                });
             };
-
-            // save
-            _include.push(fullFile);
-            _debug("Including: " + $file);
-
-            $.ajax({
-                contentType:        'text/javascript',
-                dataType:           'script',
-                url:                fullFile,
-                complete:           _include_COMPLETE_handler,
-                error:              function($jqXHR, $text, $error){
-                    _include_ERROR_handler(fullFile, $jqXHR, $text, $error);
-                }
-            });
         };
 
         /**
