@@ -66,7 +66,7 @@ if(!window['Basil']){
          * one.
          *
          * Ex:
-         *  Sage.forceComplete();
+         *  basilInstance.forceComplete();
          *
          * @access  public
          * @returns void
@@ -82,7 +82,7 @@ if(!window['Basil']){
          * This allows for a fresh start.
          *
          * Ex:
-         *  Sage.flush();
+         *  basilInstance.flush();
          *
          * @access  public
          * @returns void
@@ -107,7 +107,7 @@ if(!window['Basil']){
          * to instantiable classes.
          *
          * Ex:
-         *  Sage.register(_self);
+         *  basilInstance.register(_self);
          *
          * @param   $class  Object of containing class
          * @return  void
@@ -130,9 +130,9 @@ if(!window['Basil']){
          * class where you can call `super`.
          *
          * Ex:
-         *  return Sage.extend(_self, 'BaseObject');
+         *  return basilInstance.extend(_self, 'BaseObject');
          *  // or
-         *  return Sage.extend(_self, 'ParentObject', true); // used for static classes
+         *  return basilInstance.extend(_self, 'ParentObject', true); // used for static classes
          *
          * @param   $classA     Usually _self. Class you want to extend into.
          * @param   $classB     String name of class you want to extend.
@@ -202,26 +202,34 @@ if(!window['Basil']){
         /**
          * create
          *
-         * This should be used as the return for the base class of
-         * an extension, like DisplayObject, or Object. Something low
-         * level. Right now it just returns the class, but it could
-         * be used for something in the future so we use it.
+         * This is the function that shoudl be called at the
+         * return of every class. It has optional arguments
+         * for extending other classes and also for registering
+         * to Basil.
          *
          * Ex:
-         *  return Sage.create(_self);
+         *  return basilInstance.create(_self);
+         *  // or
+         *  return basilInstance.create(_self, {register: true, extend: 'className'});
          *
          * @param   $class  Object containing class
+         * @param   $params Object specifying register, extensions, ...
          * @return  Class<Object>
          */
-        this.create         =   function create($class){
-            _lastClass  =   $class;
-            return $class;
+        this.create         =   function create($class, $params){
+            $params         =   $params || {};
+            // use a registration
+            if($params['register']){
+                _self.register($class);
+            };
 
-            // not required ?
-            for(var i in $class){
-                $class.__proto__.constructor.prototype[i]   =   $class[i];
-                delete $class[i];
-            }
+            // extend
+            if($params['extend']){
+                return _self.extend($class, $params['extend'], true);
+            };
+
+            // simple create
+            _lastClass  =   $class;
             return $class;
         };
 
@@ -239,7 +247,7 @@ if(!window['Basil']){
          * Sends downloaded files to _include_COMPLETE_handler
          *
          * Ex:
-         *  Sage.include('views/main.js');
+         *  basilInstance.include('views/main.js');
          *
          * @param   $files              String of the URL. Auto prepends BaseURL.
          * @param   $flushAndCallback   A function callback when new basil is completed
@@ -305,8 +313,8 @@ if(!window['Basil']){
          * basil applied can do that for the package itself.
          *
          * Ex:
-         *  Sage.execute({
-         *      url:    Sage.baseUrl + '../example/Application.js'
+         *  basilInstance.execute({
+         *      url:    basilInstance.baseUrl + '../example/Application.js'
          *  });
          *
          * @param   $params     Only param now is "url"
@@ -481,7 +489,7 @@ if(!window['Basil']){
          * Goes through all registered classes and attempts to fire their
          * construct function, then tries to extend them, finally fires
          * their init function. When all is complete, it calls the optional
-         * Sage.complete function as a callback.
+         * basilInstance.complete function as a callback.
          *
          * @return void
          */
