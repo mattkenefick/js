@@ -368,6 +368,17 @@ if(!window['Basil']){
     // ===== WORKERS
     // ===========================================
 
+        /**
+         * _extend
+         *
+         * Early version of an extending function. Copies over functions
+         * and properties from $classB to $classA if they don't already
+         * exist in classA.
+         *
+         * @param   $classA Object class that needs extending
+         * @param   $classB Object class that is extended
+         * @return  Class<Object>
+         */
         function _extend($classA, $classB){
             for(var i in $classB){
                 if(!$classA[i])
@@ -377,6 +388,15 @@ if(!window['Basil']){
             return $classA;
         };
 
+        /**
+         * _ajax
+         *
+         * This adds scripts to the head, lets them execute, then removes
+         * them from the header so it doesn't bulk up the page.
+         *
+         * @param   $params Object of parameters equivalent to that of jQuery's requirements
+         * @return  void
+         */
         function _ajax($params){
             // use jquery
            // if($ && $.ajax){ $.ajax($params);return;}
@@ -386,29 +406,23 @@ if(!window['Basil']){
                 head = document.head || document.getElementsByTagName( "head" )[0] || document.documentElement;
 
             script          =   document.createElement( "script" );
-            script.async    =   "async";
             script.src      =   $params.url;
+            script.async    =   "async";
             script.onload   =   script.onreadystatechange = function( _, isAbort ) {
                 if(!script.readyState || /loaded|complete/.test(script.readyState)){
-                    // Handle memory leak in IE
                     script.onload = script.onreadystatechange = null;
 
-                    // Remove the script
                     if(head && script.parentNode) {
                         head.removeChild(script);
                     };
 
-                    // Dereference the script
                     script = undefined;
 
-                    // Callback if not abort
                     if (!isAbort) {
                         $params.complete();
                     }
                 }
             };
-            // Use insertBefore instead of appendChild  to circumvent an IE6 bug.
-            // This arises when a base node is used (#2709 and #4378).
             head.insertBefore( script, head.firstChild );
         };
 
