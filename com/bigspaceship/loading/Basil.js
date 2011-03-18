@@ -144,9 +144,9 @@ if(!window['Basil']){
 
             _a1 =   _getObjectByString($classB);
 
-            if(typeof(a1) == 'function'){
+            if(typeof(_a1) == 'function'){
                 // insantiable extension
-                _t  =   new _getObjectByString($classB)();
+                _t  =   new _a1();
 
                 // create supers for all elements inside of the class.
                 for(var i in _t){
@@ -193,7 +193,7 @@ if(!window['Basil']){
                 _debug("Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
             };
 
-            _t              =   _extend(_t, $classA);
+            _t              =   _extend($classA, _t);
             _t.name         =   _n;
             if(_t['setSelf'])
                 _t.setSelf(_t);
