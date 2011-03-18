@@ -140,11 +140,13 @@ if(!window['Basil']){
          */
         this.extend         =   function extend($classA, $classB, $isStatic){
             var _n          =   $classA.name;
-            var _t, _c, _c1, _c2;
+            var _t, _c, _c1, _c2, _a1, _a2;
 
-            if(typeof(window[$classB]) == 'function'){
+            _a1 =   _getObjectByString($classB);
+
+            if(typeof(a1) == 'function'){
                 // insantiable extension
-                _t  =   new window[$classB]();
+                _t  =   new _getObjectByString($classB)();
 
                 // create supers for all elements inside of the class.
                 for(var i in _t){
@@ -178,12 +180,12 @@ if(!window['Basil']){
                 _extensions[$classA.name]   =   $classB;
                 return $classA;
 
-            }else if(typeof(window[$classB]) == 'object'){
+            }else if(typeof(_a1) == 'object'){
                 // static class extension
-                if(window[$classB]==undefined){
+                if(_a1==undefined){
                     _debug("Static class [" + $classB + "] doesn't exist yet. Cannot be extended.");
                 }else{
-                    var _t  =   _extend(_t, window[$classB]);
+                    var _t  =   _extend({}, _a1);
                     _debug("Extending static class");
                 }
             }else{
@@ -496,6 +498,27 @@ if(!window['Basil']){
         };
 
         /**
+         * _getObjectByString
+         *
+         * Descends through the window and gets an object
+         * by string. This also works with objects that
+         * are using dot notation.
+         *
+         * @param   $str    String name of the reference
+         * @param   $obj    Recursion. Object to start with
+         * @param   $layer  Recursion. Depth
+         * @return  Object
+         */
+        function _getObjectByString($str, $obj, $layer){
+            var ret =   $obj || window;
+            $layer  =   isNaN($layer) ? 0 : $layer;
+            if(typeof($str)==='string') $str = $str.split('.');
+            ret = ret[$str[$layer]];
+            if($layer < $str.length-1) ret = _getObjectByString($str, ret, $layer+1);
+            return ret;
+        };
+
+        /**
          * _isDuplicateInclude
          *
          * Checks to see if this file has been added already.
@@ -567,7 +590,7 @@ if(!window['Basil']){
          * @return void
          */
         function _extendAndInitiate(){
-            var i;
+            var i, _obj;
 
             ___DOCUMENT_LOADED  =   true;
 
@@ -587,7 +610,8 @@ if(!window['Basil']){
             for( i in _extensions ){
                 for(ii in _classes){
                     if(_classes[ii].name == i){
-                        window[_classes[ii].name]   =   _self.extend(_classes[ii], _extensions[i]);
+                        _obj    =   _getObjectByString(_classes[ii].name);
+                        _obj    =   _self.extend(_classes[ii], _extensions[i]);
                     };
                 };
             };
