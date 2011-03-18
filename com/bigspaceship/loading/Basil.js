@@ -532,6 +532,13 @@ if(!window['Basil']){
          */
         var drInt   =   null;
         function _includeComplete($boolean){
+
+            if(_isComplete){
+                clearInterval(drInt);
+                drInt   =   null;
+                return;
+            };
+
             if(window['___DOCUMENT_LOADED']){
                 _debug("Downloads complete... Waiting for document load.");
                 _isComplete =   true;
