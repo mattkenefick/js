@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CodeExplorer jQuery Plugin</title>
+        <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.5.min.js"></script>
+        <script src="http://ajax.microsoft.com/ajax/jquery.ui/1.8.5/jquery-ui.min.js"></script>
+        <script src="./script/jquery.codeExplorer.js"></script>
+        <style>
+            body{
+                padding:        0;
+                margin:         0;
+            }
+            body > h1 {
+                background:     #000;
+                color:          white;
+                padding:        50px;
+                margin:         0;
+            }
+
+            .codeExplorer {
+                height:         200px;
+            }
+        </style>
+        <script>
+            // test
+            $(document).ready(function(){
+                $('#GitHubDemo').codeExplorer({
+                    ceDir:          './script/codeExplorer/',
+                    github: {
+                        user:       'bigspaceship',
+                        repo:       'js'
+                    }
+                });
+
+                $('#LocalDemo').codeExplorer({
+                    ceDir:          './script/codeExplorer/',
+                    directory:      'CodeExplorer.php',
+                    theme:          'bss',
+                    closeChildrenFolders:   true,
+                    buttons:    {
+                        max:        false,
+                        close:      false
+                    },
+                    resizable:      true,
+                    draggable:      true
+                });
+            });
+        </script>
+    </head>
+    <body>
+
+        <h1>Demo: jQuery CodeExplorer v0.0.1</h1>
+
+        <div id="GitHubDemo"></div>
+        <div id="LocalDemo"></div>
+
+        <p>
+            How to setup:
+        </p>
+        <pre>
+        /**
+         *    Must be attached to a container via ID. Can only be attached
+         *    to one each.
+         *
+         *    ceDir         // where your CodeExplorer package lives
+         *    theme         // the name of the style you want to use
+         *    directory     // PHP file that proxies to the directory your files
+         */
+        $('#MyCodeArea').codeExplorer({
+            ceDir:          './script/codeExplorer/',
+            theme:          'coda',
+            directory:      'Projects.php'
+        });
+        </pre>
+
+    </body>
+</html>
