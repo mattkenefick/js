@@ -33,7 +33,7 @@ if(!window['Basil']){
     * @author   Matt Kenefick <m.kenefick@bigspaceship.com>
     * @package  Big Spaceship / Loading
     */
-    function Basil($name, $baseUrl){
+    function Basil($name, $baseUrl, $cache){
 
         // private vars
         var _self           =   this;
@@ -49,6 +49,7 @@ if(!window['Basil']){
         this.debug          =   'Out';      // Object, Out, true, false
         this.complete       =   null;       // fired on everything's completion.
         this.errors         =   [];
+        this.cache          =   $cache != null ? $cache : true;
 
 
     // ===========================================
@@ -256,7 +257,7 @@ if(!window['Basil']){
          * @return  void
          */
         this.include        =   function include(){
-            var i, fullFile, file;
+            var i, fullFile, file, noCache;
             var args        =   arguments;
 
             // assume we want to reset the basil and
@@ -289,10 +290,12 @@ if(!window['Basil']){
                 _include.push(fullFile);
                 _debug("Including: " + file);
 
+                noCache =   _self.cache == true ? '': '?c=' + Math.random();
+
                 _ajax({
                     contentType:        'text/javascript',
                     dataType:           'script',
-                    url:                fullFile,
+                    url:                fullFile + noCache,
                     complete:           _include_COMPLETE_handler,
                     error:              function($jqXHR, $text, $error){
                         _include_ERROR_handler(fullFile, $jqXHR, $text, $error);
