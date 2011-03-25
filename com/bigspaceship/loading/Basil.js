@@ -577,16 +577,21 @@ if(!window['Basil']){
             if(_isComplete){
                 clearInterval(drInt);
                 drInt   =   null;
+
                 return;
             };
 
             if(window['___DOCUMENT_LOADED']){
-                _debug("Downloads complete... Waiting for document load.");
+                _debug("\n FIRING Document Loaded " + drInt + "\n");
                 _isComplete =   true;
 
-                _extendAndInitiate();
                 clearInterval(drInt);
                 drInt   =   null;
+
+                _extendAndInitiate();
+
+                // flush
+                setTimeout(_self.flush, 500);
             }else{
                 if(!$boolean)
                 var script      =   document.createElement( "script" );
@@ -656,9 +661,6 @@ if(!window['Basil']){
             if(_self.errors && _self.errors.length){
                 _printErrors();
             };
-
-            // flush
-            _self.flush();
         };
 
 
