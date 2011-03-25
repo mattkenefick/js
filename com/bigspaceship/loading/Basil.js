@@ -42,6 +42,7 @@ if(!window['Basil']){
         var _classes        =   [];
         var _extensions     =   {};
         var _isComplete     =   false;
+        var _completeCallbacks  =   [];
 
         // public vars
         this.name           =   $name       || 'Basil';
@@ -55,6 +56,20 @@ if(!window['Basil']){
     // ===========================================
     // ===== CALLABLE
     // ===========================================
+
+        /**
+         * complete
+         *
+         * Add a method that will be fired when all
+         * classes are constructed, extended, and inited.
+         *
+         * @param   $function   Function to be called
+         * @return  _self<Object>
+         */
+        this.complete       =   function complete($function){
+            alert("Adding");
+            _completeCallbacks.push($function);
+        };
 
         /**
          * forceComplete
@@ -222,9 +237,7 @@ if(!window['Basil']){
         this.create         =   function create($class, $params){
             $params         =   $params || {};
             // use a registration
-            if($params['register']){
-                _self.register($class);
-            };
+            _self.register($class);
 
             // extend
             if($params['extend']){
@@ -290,8 +303,10 @@ if(!window['Basil']){
                 _include.push(fullFile);
                 _debug("Including: " + file);
 
+                // should we allow cached files?
                 noCache =   _self.cache == true ? '': '?c=' + Math.random();
 
+                // fetch file.
                 _ajax({
                     contentType:        'text/javascript',
                     dataType:           'script',
@@ -593,7 +608,7 @@ if(!window['Basil']){
          * @return void
          */
         function _extendAndInitiate(){
-            var i, _obj;
+            var i, l, _obj;
 
             ___DOCUMENT_LOADED  =   true;
 
@@ -602,7 +617,7 @@ if(!window['Basil']){
             for( i in _classes ){
                 if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                     if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
-                        _debug(_classes[i].name + " doesn't have construct method");
+                        // no construct method
                     }else{
                         _classes[i].construct();
                     }
@@ -624,7 +639,7 @@ if(!window['Basil']){
             for( i in _classes ){
                 if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                     if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
-                        _debug(_classes[i].name + " doesn't have init method");
+                        // no init method
                     }else{
                         _classes[i].init();
                     }
@@ -632,8 +647,8 @@ if(!window['Basil']){
             };
 
             // fire complete function if it exists
-            if(_self.complete)
-                _self.complete();
+            for(i = 0, l = _completeCallbacks.length; i < l; i++ )
+                _completeCallbacks[i]();
 
             _debug("Classes construct/extend/init completed.");
 
