@@ -110,7 +110,7 @@ if(!window['Basil']){
             _included       =   [];
             _classes        =   [];
             _isComplete     =   false;
-            _self.complete  =   null;
+            _completeCallbacks  =   [];
             _self.errors    =   [];
         };
 
@@ -656,6 +656,9 @@ if(!window['Basil']){
             if(_self.errors && _self.errors.length){
                 _printErrors();
             };
+
+            // flush
+            _self.flush();
         };
 
 
