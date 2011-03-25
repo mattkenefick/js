@@ -182,7 +182,7 @@ if(!window['Basil']){
                                 // be passed along with. this caps at 6
                                 $classA[i]         =   function _extended_function($a1, $a2, $a3, $a4, $a5, $a6){
                                     return (function _superClass(){
-                                        this.super  =   __2;
+                                        this.__super__  =   __2;
                                         return __1($a1, $a2, $a3, $a4, $a5, $a6);
                                     })($a1, $a2, $a3, $a4, $a5, $a6);
                                 };
