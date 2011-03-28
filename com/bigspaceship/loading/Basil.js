@@ -67,7 +67,6 @@ if(!window['Basil']){
          * @return  _self<Object>
          */
         this.complete       =   function complete($function){
-            alert("Adding");
             _completeCallbacks.push($function);
         };
 
@@ -613,13 +612,13 @@ if(!window['Basil']){
          * @return void
          */
         function _extendAndInitiate(){
-            var i, l, _obj;
+            var i, ii, l, ll, _obj;
 
             ___DOCUMENT_LOADED  =   true;
 
             // initial construct, we used two basically
             // because of the DOM
-            for( i in _classes ){
+            for( i = 0, l = _classes.length; i < l; i++ ){
                 if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                     if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
                         // no construct method
@@ -631,7 +630,7 @@ if(!window['Basil']){
 
             // secondly we're going to extend our classes that asked for it
             for( i in _extensions ){
-                for(ii in _classes){
+                for( ii = 0, ll = _classes.length; ii < ll; ii++ ){
                     if(_classes[ii].name == i){
                         _obj    =   _getObjectByString(_classes[ii].name);
                         _obj    =   _self.extend(_classes[ii], _extensions[i]);
@@ -641,7 +640,7 @@ if(!window['Basil']){
 
             // we fire init first so that elements that need
             // to be constructed can be formed first.
-            for( i in _classes ){
+            for( i = 0, l = _classes.length; i < l; i++ ){
                 if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
                     if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
                         // no init method
