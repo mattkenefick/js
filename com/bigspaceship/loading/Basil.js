@@ -43,6 +43,7 @@ if(!window['Basil']){
         var _extensions     =   {};
         var _isComplete     =   false;
         var _completeCallbacks  =   [];
+        var _readyCallbacks =   [];
 
         // public vars
         this.name           =   $name       || 'Basil';
@@ -68,6 +69,19 @@ if(!window['Basil']){
          */
         this.complete       =   function complete($function){
             _completeCallbacks.push($function);
+        };
+
+        /**
+         * ready
+         *
+         * Add a method that will be fired when
+         * document is ready. Before extending.
+         *
+         * @param   $function   Function to be called
+         * @return  _self<Object>
+         */
+        this.ready           =   function ready($function){
+            _readyCallbacks.push($function);
         };
 
         /**
@@ -237,6 +251,18 @@ if(!window['Basil']){
             $params         =   $params || {};
             // use a registration
             _self.register($class);
+
+            // ready
+            if($params['ready']){
+                $params['ready']    =   typeof($params['ready']) != 'function' ? [$class, $params['ready']] : $params['ready'];
+                _self.ready($params['ready']);
+            };
+
+            // complete
+            if($params['complete']){
+                $params['complete'] =   typeof($params['complete']) != 'function' ? [$class, $params['complete']] : $params['complete'];
+                _self.complete($params['complete']);
+            };
 
             // extend
             if($params['extend']){
@@ -616,17 +642,13 @@ if(!window['Basil']){
 
             ___DOCUMENT_LOADED  =   true;
 
-            // initial construct, we used two basically
-            // because of the DOM
-            for( i = 0, l = _classes.length; i < l; i++ ){
-                if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
-                    if(!_classes[i].hasOwnProperty('construct') && !_classes[i].construct){
-                        // no construct method
-                    }else{
-                        _classes[i].construct();
-                    }
-                }
-            };
+            for(i = 0, l = _readyCallbacks.length; i < l; i++ ){
+                if(typeof(_readyCallbacks[i]) == 'function'){
+                    _readyCallbacks[i]();
+                }else{
+                    _readyCallbacks[i][0][_readyCallbacks[i][1]]();
+                };
+            }
 
             // secondly we're going to extend our classes that asked for it
             for( i in _extensions ){
@@ -638,21 +660,14 @@ if(!window['Basil']){
                 };
             };
 
-            // we fire init first so that elements that need
-            // to be constructed can be formed first.
-            for( i = 0, l = _classes.length; i < l; i++ ){
-                if(Array.prototype[i] != _classes[i] && typeof(_classes[i]) != 'function'){
-                    if(!_classes[i].hasOwnProperty('init') && !_classes[i].init){
-                        // no init method
-                    }else{
-                        _classes[i].init();
-                    }
-                };
-            };
-
             // fire complete function if it exists
-            for(i = 0, l = _completeCallbacks.length; i < l; i++ )
-                _completeCallbacks[i]();
+            for(i = 0, l = _completeCallbacks.length; i < l; i++ ){
+                if(typeof(_completeCallbacks[i]) == 'function'){
+                    _completeCallbacks[i]();
+                }else{
+                    _completeCallbacks[i][0][_completeCallbacks[i][1]]();
+                };
+            }
 
             _debug("Classes construct/extend/init completed.");
 
