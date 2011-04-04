@@ -43,6 +43,7 @@ if(!window['Basil']){
         var _extensions     =   {};
         var _isComplete     =   false;
         var _completeCallbacks  =   [];
+        var _initCallbacks  =   [];
         var _readyCallbacks =   [];
 
         // public vars
@@ -85,6 +86,19 @@ if(!window['Basil']){
         };
 
         /**
+         * init
+         *
+         * Add a method that will be fired when
+         * document is ready. After extending.
+         *
+         * @param   $function   Function to be called
+         * @return  _self<Object>
+         */
+        this.init               =   function init($function){
+            _initCallbacks.push($function);
+        };
+
+        /**
          * forceComplete
          *
          * Allows user to force the complete event to be fired
@@ -124,6 +138,8 @@ if(!window['Basil']){
             _classes        =   [];
             _isComplete     =   false;
             _completeCallbacks  =   [];
+            _readyCallbacks =   [];
+            _initCallbacks  =   [];
             _self.errors    =   [];
         };
 
@@ -253,15 +269,15 @@ if(!window['Basil']){
             _self.register($class);
 
             // ready
-            if($params['ready']){
-                $params['ready']    =   typeof($params['ready']) != 'function' ? [$class, $params['ready']] : $params['ready'];
-                _self.ready($params['ready']);
+            if($params['construct']){
+                $params['construct']    =   typeof($params['construct']) != 'function' ? [$class, $params['construct']] : $params['construct'];
+                _self.ready($params['construct']);
             };
 
             // complete
-            if($params['complete']){
-                $params['complete'] =   typeof($params['complete']) != 'function' ? [$class, $params['complete']] : $params['complete'];
-                _self.complete($params['complete']);
+            if($params['init']){
+                $params['init']     =   typeof($params['init']) != 'function' ? [$class, $params['init']] : $params['init'];
+                _self.init($params['init']);
             };
 
             // extend
@@ -611,12 +627,9 @@ if(!window['Basil']){
                 _isComplete =   true;
 
                 clearInterval(drInt);
-                drInt   =   null;
+                drInt       =   null;
 
                 _extendAndInitiate();
-
-                // flush
-                setTimeout(_self.flush, 500);
             }else{
                 if(!$boolean)
                 var script      =   document.createElement( "script" );
@@ -659,6 +672,15 @@ if(!window['Basil']){
                     };
                 };
             };
+
+            // fire init function if it exists
+            for(i = 0, l = _initCallbacks.length; i < l; i++ ){
+                if(typeof(_initCallbacks[i]) == 'function'){
+                    _initCallbacks[i]();
+                }else{
+                    _initCallbacks[i][0][_initCallbacks[i][1]]();
+                };
+            }
 
             // fire complete function if it exists
             for(i = 0, l = _completeCallbacks.length; i < l; i++ ){
