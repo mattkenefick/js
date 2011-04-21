@@ -19,15 +19,39 @@ To contact Big Spaceship, email info@bigspaceship.com or write to us at
 45 Main Street #716, Brooklyn, NY, 11201.
 */
 
+/*
+usage ::
+
+Accelerometer.shake(function(evt) {
+	console.log(evt.shakeAmount); // minimum will be 20.
+});
+
+Accelerometer.tilt(function(evt) {
+	console.log(evt); // evt.x is the amount tilted on the x, evt.y for y, evt.z for z
+});
+
+Accelerometer.enable(); // start listening for device motion
+Accelerometer.disable(); // stop listening for device motion
+
+---
+chaining is supported as well:
+
+Accelerometer.shake(function(evt) {
+	console.log(evt.shakeAmount);	
+}).tilt(function(evt) {
+	console.log(evt);
+}).enable();
+
+
+*/
+
 if(window['Accelerometer']) return;
 
 var Accelerometer = new(function() {
 	var _self = this;
 	var _tiltListeners = [];
 	var _shakeListeners = [];
-	
-	this.shakeSensitivity = 20;
-	this.interval = false;
+	var _updateInterval;
 
 	var _x1 = 0;
 	var _y1 = 0;
@@ -35,6 +59,8 @@ var Accelerometer = new(function() {
 	var _x2 = 0;
 	var _y2 = 0;
 	var _z2 = 0;
+
+	this.shakeSensitivity = 20;
 	
 	this.shake = function($f) {
 		_shakeListeners.push($f);
@@ -51,7 +77,7 @@ var Accelerometer = new(function() {
 		else {
 			_self.disable();
 			window.addEventListener("devicemotion",_onDeviceMotion,false);
-			_self.interval = setInterval(_update,150);
+			_updateInterval = setInterval(_update,150);
 		}
 
 		return _self;
@@ -63,7 +89,7 @@ var Accelerometer = new(function() {
 		_z2 = 0;
 
 		window.removeEventListener("devicemotion",_onDeviceMotion);
-		clearInterval(_self.interval);
+		clearInterval(_updateInterval);
 		
 		return _self;
 	}
