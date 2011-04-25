@@ -589,10 +589,10 @@ if(!window['Basil']){
          * @return  boolean
          */
         function _isDuplicateInclude($file){
-            if(
-                _include.indexOf($file) > -1
+            if( _include && _include['indexOf'] &&
+                (_include.indexOf($file) > -1
                 || _included.hasOwnProperty($file)
-                || _included.indexOf($file) > -1
+                || _included.indexOf($file) > -1)
             ){
                 return true;
             };
@@ -743,6 +743,7 @@ if(!window['Basil']){
     // ===== CONSTRUCTOR
     // ===========================================
 
+        // return ref;
         return this;
     };
 };
