@@ -53,6 +53,8 @@ if(!window['Basil']){
         this.complete       =   null;       // fired on everything's completion.
         this.errors         =   [];
         this.cache          =   $cache != null ? $cache : true;
+        this.tierIndex      =   0;          // which tier of loading are we on
+        this.currentTier    =   0;          // which tier number are we on
 
 
     // ===========================================
@@ -313,50 +315,56 @@ if(!window['Basil']){
         this.include        =   function include(){
             var i, fullFile, file, noCache;
             var args        =   arguments;
+            var tier        =   0;
 
             // assume we want to reset the basil and
             // start over. good for on-demand loading
             // controllers and such
+            // LAST OBJECT IS A FUNCTION
             if(typeof(args[args.length-1]) == 'function'){
-                _self.flush();
-                _self.complete  =   args[args.length-1];
+                _self.complete(args[args.length-1]);
+            };
+
+            // FIRST OBJECT IS A NUMBER
+            // this lets us assign loads to tiers
+            if(typeof(args[0]) == 'number'){
+                tier    =   args[0];
             };
 
             // loop through possible args
             for(i = 0, l = args.length; i < l; i++){
                 file        =   args[i];
 
-                // dont execute if it's a function
-                if(typeof(file) == 'function') continue;
+                // dont execute if it's a function or number
+                if(
+                    typeof(file) == 'function' ||
+                    typeof(file) == 'number'
+                ) continue;
 
-                // include
-                fullFile    =   _self.baseUrl + file;
-                if(file.substr(0,4) == 'http')
-                    fullFile    =   file;
-
-                // ignore inclusion if it's already downloading
-                if(_isDuplicateInclude(fullFile)){
-                    _debug("Already included: " + file);
-                    return;
+                // check tier and if we've already started
+                // assign that to the current tier
+                if(tier < _self.currentTier){
+                    tier = _self.currentTier;
                 };
 
-                // save
-                _include.push(fullFile);
-                _debug("Including: " + file);
+                // set the filename, check if it's external
+                // append baseurl if it's relative
+                fullFile    =   _self.baseUrl + file;
+                if(file.substr(0,4) == 'http'){
+                    fullFile    =   file;
+                };
 
-                // should we allow cached files?
-                noCache =   _self.cache == true ? '': '?c=' + Math.random();
+                // should we allow cached files ?
+                noCache = _self.cache == true ? '': '?c=' + Math.random();
 
-                // fetch file.
-                _ajax({
-                    contentType:        'text/javascript',
-                    dataType:           'script',
-                    url:                fullFile + noCache,
-                    complete:           _include_COMPLETE_handler,
-                    error:              function($jqXHR, $text, $error){
-                        _include_ERROR_handler(fullFile, $jqXHR, $text, $error);
-                    }
-                });
+                // save to our includes list
+                _writeTier(tier, fullFile+noCache, _include);
+
+                // fetch file if we're in the current tier
+                // allows us to waterfall our downloads
+                if(tier <= _self.currentTier){
+                    _self.downloadScript(fullFile+noCache);
+                };
             };
         };
 
@@ -418,10 +426,77 @@ if(!window['Basil']){
                     // construct it
                     if(window[name] && window[name].construct){
                         window[name].construct($params);
-                    }
-
+                    };
                 }
             });
+        };
+
+        this.downloadScript =   function downloadScript($file){
+            if(_included.indexOf($file) > -1){
+                _debug("          Already Downloaded: " + $file);
+
+                // skip download, but keep going forward
+                _include_COMPLETE_handler(null);
+            }else{
+                _debug("     Downloading: " + $file);
+
+                _included.push($file);
+                _ajax({
+                    contentType:        'text/javascript',
+                    dataType:           'script',
+                    url:                $file,
+                    complete:           _include_COMPLETE_handler,
+                    error:              function($jqXHR, $text, $error){
+                        _include_ERROR_handler($file, $jqXHR, $text, $error);
+                    }
+                });
+            };
+        };
+
+        this.downloadTier   =   function downloadTier($index, $ref){
+            var i;
+
+            // debug
+            _debug("Level " + $index + " Started: Tier " + _self.currentTier);
+
+            // does not exist
+            if(!$ref[$index]){return false;}
+
+            // download files
+            for(i = 0, l = $ref[$index].queue.length; i < l; i++){
+                _self.downloadScript($ref[$index].queue[i]);
+            };
+        };
+
+
+    // ===========================================
+    // ===== COMPLEX OBJECT MAPPING
+    // ===========================================
+
+        function _writeTier($tier, $file, $ref){
+            var t   =   _getTier($tier, $ref);
+                t.queue.push($file);
+                $ref.sortOn('tier');
+        };
+
+        function _getTier($tier, $ref){
+            for(var i in $ref){
+                if($ref[i].tier == $tier)
+                    return $ref[i];
+            };
+
+            return _createTier($tier, $ref);
+        };
+
+        function _getTierNumberFromLevel($level, $ref){
+            if($ref[$level])
+                return $ref[$level].tier;
+            return 0;
+        };
+
+        function _createTier($level, $ref){
+            $ref.push({tier: $level, queue: [], complete: 0});
+            return $ref[$ref.length-1];
         };
 
 
@@ -459,9 +534,6 @@ if(!window['Basil']){
          * @return  void
          */
         function _ajax($params){
-            // use jquery
-           // if($ && $.ajax){ $.ajax($params);return;}
-
             // include to head
             var script,
                 head = document.head || document.getElementsByTagName( "head" )[0] || document.documentElement;
@@ -575,28 +647,6 @@ if(!window['Basil']){
             ret = ret[$str[$layer]];
             if($layer < $str.length-1) ret = _getObjectByString($str, ret, $layer+1);
             return ret;
-        };
-
-        /**
-         * _isDuplicateInclude
-         *
-         * Checks to see if this file has been added already.
-         *
-         * Ex:
-         *  if( _isDuplicateFile('myFile.js')) { ...
-         *
-         * @param   $file   String URL of file
-         * @return  boolean
-         */
-        function _isDuplicateInclude($file){
-            if( _include && _include['indexOf'] &&
-                (_include.indexOf($file) > -1
-                || _included.hasOwnProperty($file)
-                || _included.indexOf($file) > -1)
-            ){
-                return true;
-            };
-            return false;
         };
 
         /**
@@ -717,15 +767,28 @@ if(!window['Basil']){
          * @return  void
          */
         function _include_COMPLETE_handler($e){
-            var lastRequested           =   _include[_included.length];
-            _included[lastRequested]    =   1;
-            _included.push(lastRequested);
-
             setTimeout(function(){
-                if( _included.length == _include.length && !_isComplete ){
-                    _includeComplete();
+                var a = _getTier(_self.currentTier, _include);
+                    a.complete++;
+
+                // downloaded files matches amount in queue
+                if(a.complete == a.queue.length){
+                    // tier complete, move on
+                    _debug("Level " + _self.tierIndex + " complete. " + a.queue.length + " file(s) downloaded.");
+
+                    // increase index and match next tier ID
+                    _self.tierIndex++;
+                    _self.currentTier   =   _getTierNumberFromLevel(_self.tierIndex, _include);
+
+                    if( _self.tierIndex >= _include.length && !_isComplete ){
+                        _includeComplete();
+                    }else{
+                        // download next tier
+                        _self.downloadTier(_self.tierIndex, _include);
+                    };
                 };
-            }, 500);
+            }, 100);
+
         };
 
         function _include_ERROR_handler($file, $jqXHR, $text, $error){
@@ -745,5 +808,16 @@ if(!window['Basil']){
 
         // return ref;
         return this;
+    };
+};
+
+// array sorton
+if(!Array.sortOn){
+    Array.prototype.sortOn = function($key){
+        this.sort(
+                function(a, b){
+                    return (a[$key] > b[$key]) - (a[$key] < b[$key]);
+                }
+            );
     };
 };
