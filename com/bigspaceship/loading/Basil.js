@@ -37,6 +37,7 @@ if(!window['Basil']){
 
         // private vars
         var _self           =   this;
+        var _execTime       =   75;
         var _include        =   [];
         var _included       =   [];
         var _classes        =   [];
@@ -45,6 +46,7 @@ if(!window['Basil']){
         var _completeCallbacks  =   [];
         var _initCallbacks  =   [];
         var _readyCallbacks =   [];
+        var _events         =   new TinyEventDelegate();
 
         // public vars
         this.name           =   $name       || 'Basil';
@@ -62,6 +64,17 @@ if(!window['Basil']){
     // ===========================================
 
         /**
+         * event aliases (on, bind, unbind, unbindAll, trigger)
+         *
+         * Adds alias to our TinyEventDelegate
+         */
+        this.on             =   _events.on;
+        this.bind           =   _events.bind;
+        this.unbind         =   _events.unbind;
+        this.unbindAll      =   _events.unbindAll;
+        this.trigger        =   _events.trigger;
+
+        /**
          * complete
          *
          * Add a method that will be fired when all
@@ -71,11 +84,11 @@ if(!window['Basil']){
          * @return  _self<Object>
          */
         this.complete       =   function complete($function){
-            _completeCallbacks.push($function);
+            _events.on('complete', $function);
         };
 
         /**
-         * ready
+         * construct
          *
          * Add a method that will be fired when
          * document is ready. Before extending.
@@ -83,8 +96,8 @@ if(!window['Basil']){
          * @param   $function   Function to be called
          * @return  _self<Object>
          */
-        this.ready           =   function ready($function){
-            _readyCallbacks.push($function);
+        this.construct       =   function construct($function){
+            _events.on('ready', $function);
         };
 
         /**
@@ -97,7 +110,7 @@ if(!window['Basil']){
          * @return  _self<Object>
          */
         this.init               =   function init($function){
-            _initCallbacks.push($function);
+            _events.on('init', $function);
         };
 
         /**
@@ -138,6 +151,7 @@ if(!window['Basil']){
             _include        =   [];
             _included       =   [];
             _classes        =   [];
+            _events         =   new TinyEventDelegate();
             _isComplete     =   false;
             _completeCallbacks  =   [];
             _readyCallbacks =   [];
@@ -267,16 +281,17 @@ if(!window['Basil']){
          */
         this.create         =   function create($class, $params){
             $params         =   $params || {};
+
             // use a registration
             _self.register($class);
 
-            // ready
+            // construct(ready)
             if($params['construct']){
                 $params['construct']    =   typeof($params['construct']) != 'function' ? [$class, $params['construct']] : $params['construct'];
                 _self.ready($params['construct']);
             };
 
-            // complete
+            // init(complete)
             if($params['init']){
                 $params['init']     =   typeof($params['init']) != 'function' ? [$class, $params['init']] : $params['init'];
                 _self.init($params['init']);
@@ -549,7 +564,7 @@ if(!window['Basil']){
                         head.removeChild(script);
                     };
 
-                    script = undefined;
+                    script = null;
 
                     if (!isAbort) {
                         $params.complete();
@@ -685,7 +700,7 @@ if(!window['Basil']){
                 var script      =   document.createElement( "script" );
                     script.text =   "___DOCUMENT_LOADED = true;";
                     document.body.appendChild(script);
-                    document.body.removeChild(script);
+                    // document.body.removeChild(script);
                     drInt       =   setInterval(_includeComplete, 50, [true]);
             };
         };
@@ -705,13 +720,8 @@ if(!window['Basil']){
 
             ___DOCUMENT_LOADED  =   true;
 
-            for(i = 0, l = _readyCallbacks.length; i < l; i++ ){
-                if(typeof(_readyCallbacks[i]) == 'function'){
-                    _readyCallbacks[i]();
-                }else{
-                    _readyCallbacks[i][0][_readyCallbacks[i][1]]();
-                };
-            }
+            // trigger construct events.
+            _events.trigger('construct');
 
             // secondly we're going to extend our classes that asked for it
             for( i in _extensions ){
@@ -724,22 +734,10 @@ if(!window['Basil']){
             };
 
             // fire init function if it exists
-            for(i = 0, l = _initCallbacks.length; i < l; i++ ){
-                if(typeof(_initCallbacks[i]) == 'function'){
-                    _initCallbacks[i]();
-                }else{
-                    _initCallbacks[i][0][_initCallbacks[i][1]]();
-                };
-            }
+            _events.trigger('init');
 
             // fire complete function if it exists
-            for(i = 0, l = _completeCallbacks.length; i < l; i++ ){
-                if(typeof(_completeCallbacks[i]) == 'function'){
-                    _completeCallbacks[i]();
-                }else{
-                    _completeCallbacks[i][0][_completeCallbacks[i][1]]();
-                };
-            }
+            _events.trigger('complete');
 
             _debug("Classes construct/extend/init completed.");
 
@@ -767,6 +765,7 @@ if(!window['Basil']){
          * @return  void
          */
         function _include_COMPLETE_handler($e){
+            // delay, let script execute a little
             setTimeout(function(){
                 var a = _getTier(_self.currentTier, _include);
                     a.complete++;
@@ -787,7 +786,7 @@ if(!window['Basil']){
                         _self.downloadTier(_self.tierIndex, _include);
                     };
                 };
-            }, 100);
+            }, _execTime);
 
         };
 
@@ -811,7 +810,14 @@ if(!window['Basil']){
     };
 };
 
-// array sorton
+/**
+ * Array.prototype.sortOn
+ *
+ * This function is based off the AS3.0 usage
+ * to sort an array off an associative key.
+ * Basil attempts to be self-sufficient so it
+ * supplies this function if not already found.
+ */
 if(!Array.sortOn){
     Array.prototype.sortOn = function($key){
         this.sort(
@@ -820,4 +826,63 @@ if(!Array.sortOn){
                 }
             );
     };
+};
+
+/**
+ * TinyEventDelegeate, TinyEvent
+ *
+ * Basil uses TinyEventDelegate to help manage
+ * events. This class is built specifically for
+ * Basil usage only and not recommended for other
+ * applications. It's inefficient for larger
+ * usages, but suffices for the small need required
+ * from Basil.
+ */
+
+function TinyEvent($event, $handler){
+    this.name = $event;
+    this.handler = $handler;
+    return this;
+};
+function TinyEventDelegate(){
+    var _self   =   this;
+    this.events =   [];
+    this.exists =   function exists($event, $handler){
+        for(var i = 0, l = _self.events.length; i < l; i++){
+            if(_self.events[i].name==$event && _self.events[i].handler==$handler)
+                return true;
+        };
+        return false;
+    };
+    this.find   =   function find($event, $handler){
+        for(var i = 0, l = _self.events.length; i < l; i++){
+            if(_self.events[i].name==$event && _self.events[i].handler==$handler)
+                return i;
+        };
+        return false;
+    };
+    this.bind   =   function bind($event, $handler){
+        if(!_self.exists($event, $handler)){
+            _self.events.push(new TinyEvent($event, $handler));
+        };
+    };
+    this.unbind =   function unbind($event, $handler){
+        if(!$handler) return _self.unbindAll($event);
+        var index   =   _self.find($event, $handler);
+        if(index > -1) _self.events.splice(index,1);
+    };
+    this.unbindAll  =   function unbindAll($event){
+        for(var i = _self.events.length - 1; i >= 0; i--){
+            if(_self.events[i].name==$event)
+                _self.events.splice(i,1);
+        };
+    };
+    this.trigger=   function trigger($event){
+        for(var i = 0, l = _self.events.length; i < l; i++){
+            if(_self.events[i].name==$event)
+                _self.events[i].handler(/**execute**/);
+        };
+    };
+    this.on     =   this.bind; // alias
+    this.fire   =   this.trigger; // alias;
 };
