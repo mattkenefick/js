@@ -42,6 +42,7 @@ if(!window['Basil']){
         var _included       =   [];
         var _classes        =   [];
         var _extensions     =   {};
+        var _strDocLoaded   =   'basilDocLoaded';
         var _isComplete     =   false;
         var _completeCallbacks  =   [];
         var _initCallbacks  =   [];
@@ -97,7 +98,7 @@ if(!window['Basil']){
          * @return  _self<Object>
          */
         this.construct       =   function construct($function){
-            _events.on('ready', $function);
+            _events.on('construct', $function);
         };
 
         /**
@@ -688,7 +689,10 @@ if(!window['Basil']){
             };
 
             if(window['___DOCUMENT_LOADED']){
-                _debug("\n FIRING Document Loaded " + drInt + "\n");
+                var script      =   document.getElementById(_strDocLoaded);
+                document.body.removeChild(script);
+
+                _debug([("=").repeat(15), " Document Loaded :: RandID ", drInt, "\n"].join(''));
                 _isComplete =   true;
 
                 clearInterval(drInt);
@@ -696,11 +700,10 @@ if(!window['Basil']){
 
                 _extendAndInitiate();
             }else{
-                if(!$boolean)
                 var script      =   document.createElement( "script" );
+                    script.id   =   _strDocLoaded;
                     script.text =   "___DOCUMENT_LOADED = true;";
                     document.body.appendChild(script);
-                    // document.body.removeChild(script);
                     drInt       =   setInterval(_includeComplete, 50, [true]);
             };
         };
@@ -739,7 +742,8 @@ if(!window['Basil']){
             // fire complete function if it exists
             _events.trigger('complete');
 
-            _debug("Classes construct/extend/init completed.");
+            _debug(("=").repeat(15) + " All Basil actions completed.");
+            _debug(("=").repeat(15) + " You may now flush, reset, or nullify this instance of Basil.");
 
             // show any errors
             if(_self.errors && _self.errors.length){
@@ -818,7 +822,7 @@ if(!window['Basil']){
  * Basil attempts to be self-sufficient so it
  * supplies this function if not already found.
  */
-if(!Array.sortOn){
+if(!Array['sortOn']){
     Array.prototype.sortOn = function($key){
         this.sort(
                 function(a, b){
@@ -827,6 +831,19 @@ if(!Array.sortOn){
             );
     };
 };
+
+/**
+ * String.prototype.repeat
+ *
+ * Function used to repeat strings really easily
+ * and elegantly.
+ */
+if(!String['repeat']){
+    String.prototype.repeat = function($n){
+        return new Array($n + 1).join( this );
+    }
+};
+
 
 /**
  * TinyEventDelegeate, TinyEvent
