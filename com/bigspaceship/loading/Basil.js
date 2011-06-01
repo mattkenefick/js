@@ -24,10 +24,116 @@ if(!window['Basil']){
     /**
     * Basil
     *
-    * This is the global loader for all javascript files.
+    * This is the global loader for all Javascript files.
     *
-    * Ex Usage:
-    *   var YourSiteName    =   new Basil('site');
+    *
+    * # Usage Methods ====================================
+    *
+    * 1.) Instantiation
+    *
+    *   Three parameters ($name, $baseUrl, and $cache) can be used
+    *   but all of them are optional.
+    *
+    *       $name       -   Unused at the moment. It keeps track of each Basil.
+    *                       Could be used if you save Basils in an array and need
+    *                       to find one in particular.
+    *
+    *       $baseUrl    -   Defines the root URL for all relative includes.
+    *                       This makes it easier to include many files without
+    *                       having to additionally prepend the script directory
+    *                       every time. Does not affect absolute URLs.
+    *
+    *       $cache      -   Defines whether or not files should be allowed to cache.
+    *                       Default is set to TRUE. If you set to "FALSE", Basil
+    *                       adds a uri item `c` with a random number at the end.
+    *
+    * 2.) Inclusion
+    *
+    *   There are three main ways to include files using Basil.
+    *
+    *   A.) Simply append one after another:
+    *
+    *       BasilApp.include(...);
+    *       BasilApp.include(...);
+    *       BasilApp.include(...);
+    *
+    *
+    *   B.) Include as a series of arguments:
+    *
+    *       BasilApp.include(..., ..., ..., ...);
+    *
+    *
+    *   C.) Include with a priority:
+    *
+    *       BasilApp.include(0, ...);
+    *       BasilApp.include(1, ...);
+    *       BasilApp.include(1, ...);
+    *       BasilApp.include(2, ...);
+    *
+    *   In method C, the files are sorted in order of which they are defined.
+    *   All numbers #0 will be loaded before any numbers #1. And so, #2 is
+    *   loaded after both #0, and #1.
+    *
+    *   They do not have to be defined in any order. This means #1 can be
+    *   called before #0, but #0 will still be downloaded first.
+    *
+    *   Also, numbers DO NOT have to be sequential. It is actually recommended
+    *   that you separate number groups by 10 so you have wiggle room in the
+    *   future if you need it... i.e.
+    *
+    *       BasilApp.include(0,  ...);
+    *       BasilApp.include(10, ...);
+    *       BasilApp.include(10, ...);
+    *       BasilApp.include(20, ...);
+    *
+    *   Gives you the ability to quickly adjust and change it to this:
+    *
+    *
+    *       BasilApp.include(0,  ...);
+    *       BasilApp.include(10, ...);
+    *       BasilApp.include(15, ...);      <!-- notice the difference.
+    *       BasilApp.include(20, ...);
+    *
+    *
+    * 3.) Deep Inclusion
+    *
+    *   One of the best parts of Basil is that it lets you including more
+    *   files from within others. What this means is that you include to a
+    *   file only what it requires. The dependencies then can load what THEY
+    *   need. This removes the need for a manifest or a specific global
+    *   handler.
+    *
+    *   Here's an example:
+    *
+    *
+    *   MainFile.js
+    *
+    *       BasilApp.include('Application.js');
+    *       // end file
+    *
+    *   Application.js
+    *
+    *       BasilApp.include('controllers/Home.js');
+    *       BasilApp.include('controllers/About.js');
+    *       BasilApp.include('controllers/Contact.js');
+    *
+    *       // global application code goes here
+    *       // end file
+    *
+    *   controllers/Home.js
+    *
+    *       BasilApp.include('controllers/BaseController.js');
+    *
+    *       // Home controller goes here
+    *       return BasilApp.create(this, {extend: 'BaseController'});
+    *       // end file
+    *
+    *
+    *   Being able to define a files dependencies directly at the top of
+    *   a file allows for a lot of freedom and less mistakes. FILES ARE NOT
+    *   INCLUDED TWICE.
+    *
+    *
     *
     * @version  1.0
     * @author   Matt Kenefick <m.kenefick@bigspaceship.com>
@@ -44,9 +150,6 @@ if(!window['Basil']){
         var _extensions     =   {};
         var _strDocLoaded   =   'basilDocLoaded';
         var _isComplete     =   false;
-        var _completeCallbacks  =   [];
-        var _initCallbacks  =   [];
-        var _readyCallbacks =   [];
         var _events         =   new TinyEventDelegate();
 
         // public vars
@@ -121,6 +224,7 @@ if(!window['Basil']){
          * instead of waiting for Basil to figure out whether
          * or not everything has downloaded.
          *
+         * IMPORTANT!
          * Should only be used if all files are compiled into
          * one.
          *
@@ -147,16 +251,13 @@ if(!window['Basil']){
          * @returns void
          */
         this.flush          =   function flush(){
-            _debug("Flushing " + _self.name + " includes.");
+            _debug("Flushing " + _self.name + " includes, classes, events, states, and errors.");
 
             _include        =   [];
             _included       =   [];
             _classes        =   [];
             _events         =   new TinyEventDelegate();
             _isComplete     =   false;
-            _completeCallbacks  =   [];
-            _readyCallbacks =   [];
-            _initCallbacks  =   [];
             _self.errors    =   [];
         };
 
