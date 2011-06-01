@@ -257,8 +257,8 @@ if(!window['Basil']){
 
             _t              =   _extend($classA, _t);
             _t.name         =   _n;
-            if(_t['setSelf'])
-                _t.setSelf(_t);
+
+            if(_t['setSelf']) _t.setSelf(_t);
 
             return _t;
         };
@@ -271,10 +271,45 @@ if(!window['Basil']){
          * for extending other classes and also for registering
          * to Basil.
          *
+         * Optional parameters include:
+         *
+         *  extend <string>
+         *      Should be the class name, even if it's in dot notation.
+         *      It will be parsed by Basil and then executed. It has to
+         *      be a string because the class may not exist at time of
+         *      registration.
+         *
+         *  construct <mixed>
+         *      If this param is a string, it will look for the function
+         *      within the class it's called from. i.e.: ThisClass.construct
+         *      should be registered: '{construct: "construct"}'
+         *
+         *      If this param could also be linked to an external function
+         *      that exists outside the class if, for example, you had a
+         *      global construct function. i.e.: '{construct: GlobalConstructor}'
+         *
+         *      It's executed AFTER the document has been loaded, but BEFORE
+         *      any objects have been extended. It's a good opportunity to set
+         *      default params that depened on the document, but NOT other
+         *      classes.
+         *
+         *  init <mixed>
+         *      If this param is a string, it will look for the function
+         *      within the class it's called from. i.e.: ThisClass.init
+         *      should be registered: '{init: "init"}'
+         *
+         *      If this param could also be linked to an external function
+         *      that exists outside the class if, for example, you had a
+         *      global init function. i.e.: '{init: GlobalInitializer}'
+         *
+         *      It's executed AFTER the document, construct, and extending
+         *      functions. This is the last function to be called in the
+         *      class instantiation process.
+         *
          * Ex:
          *  return basilInstance.create(_self);
          *  // or
-         *  return basilInstance.create(_self, {register: true, extend: 'className'});
+         *  return basilInstance.create(_self, {init: 'init', extend: 'className'});
          *
          * @param   $class  Object containing class
          * @param   $params Object specifying register, extensions, ...
