@@ -47,52 +47,54 @@ if(!window['Basil']){
     *                       Default is set to TRUE. If you set to "FALSE", Basil
     *                       adds a uri item `c` with a random number at the end.
     *
+    *
     * 2.) Inclusion
     *
-    *   There are three main ways to include files using Basil.
+    *   There are three main ways of including dependencies using Basil.
     *
     *   A.) Simply append one after another:
     *
-    *       BasilApp.include(...);
-    *       BasilApp.include(...);
-    *       BasilApp.include(...);
+    *       BasilInstance.include(...);
+    *       BasilInstance.include(...);
+    *       BasilInstance.include(...);
     *
     *
     *   B.) Include as a series of arguments:
     *
-    *       BasilApp.include(..., ..., ..., ...);
+    *       BasilInstance.include(..., ..., ..., ...);
     *
     *
     *   C.) Include with a priority:
     *
-    *       BasilApp.include(0, ...);
-    *       BasilApp.include(1, ...);
-    *       BasilApp.include(1, ...);
-    *       BasilApp.include(2, ...);
+    *       BasilInstance.include(0, ...);
+    *       BasilInstance.include(1, ...);
+    *       BasilInstance.include(1, ...);
+    *       BasilInstance.include(2, ...);
+    *
     *
     *   In method C, the files are sorted in order of which they are defined.
     *   All numbers #0 will be loaded before any numbers #1. And so, #2 is
     *   loaded after both #0, and #1.
     *
     *   They do not have to be defined in any order. This means #1 can be
-    *   called before #0, but #0 will still be downloaded first.
+    *   called before #0, but #0 items will be downloaded first.
     *
     *   Also, numbers DO NOT have to be sequential. It is actually recommended
-    *   that you separate number groups by 10 so you have wiggle room in the
-    *   future if you need it... i.e.
+    *   that you separate number groups by at least 10 so you have wiggle room
+    *   in the future if you need it... i.e.
     *
-    *       BasilApp.include(0,  ...);
-    *       BasilApp.include(10, ...);
-    *       BasilApp.include(10, ...);
-    *       BasilApp.include(20, ...);
+    *       BasilInstance.include(0,  ...);
+    *       BasilInstance.include(10, ...);
+    *       BasilInstance.include(10, ...);
+    *       BasilInstance.include(20, ...);
     *
     *   Gives you the ability to quickly adjust and change it to this:
     *
     *
-    *       BasilApp.include(0,  ...);
-    *       BasilApp.include(10, ...);
-    *       BasilApp.include(15, ...);      <!-- notice the difference.
-    *       BasilApp.include(20, ...);
+    *       BasilInstance.include(0,  ...);
+    *       BasilInstance.include(10, ...);
+    *       BasilInstance.include(15, ...);      <!-- notice
+    *       BasilInstance.include(20, ...);
     *
     *
     * 3.) Deep Inclusion
@@ -100,46 +102,60 @@ if(!window['Basil']){
     *   One of the best parts of Basil is that it lets you including more
     *   files from within others. What this means is that you include to a
     *   file only what it requires. The dependencies then can load what THEY
-    *   need. This removes the need for a manifest or a specific global
-    *   handler.
+    *   require. This removes the need for a manifest or a global dependency
+    *   list. It takes the complexity out of assigning orders of operations
+    *   for loading.
     *
     *   Here's an example:
     *
+    *   [example directory structure]
     *
-    *   MainFile.js
-    *
-    *       BasilApp.include('Application.js');
-    *       // end file
-    *
+    *   Main.js
     *   Application.js
-    *
-    *       BasilApp.include('controllers/Home.js');
-    *       BasilApp.include('controllers/About.js');
-    *       BasilApp.include('controllers/Contact.js');
-    *
-    *       // global application code goes here
-    *       // end file
-    *
     *   controllers/Home.js
+    *   controllers/About.js
+    *   controllers/Contact.js
     *
-    *       BasilApp.include('controllers/BaseController.js');
     *
-    *       // Home controller goes here
-    *       return BasilApp.create(this, {extend: 'BaseController'});
+    *   [example files preview (indented to show level of inclusion)]
+    *
+    *   (Main.js)
+    *
+    *       BasilInstance.include('Application.js');
     *       // end file
+    *
+    *
+    *   ---- (Application.js)
+    *   ----
+    *   ----    BasilInstance.include('controllers/Home.js');
+    *   ----    BasilInstance.include('controllers/About.js');
+    *   ----    BasilInstance.include('controllers/Contact.js');
+    *   ----
+    *   ----    // global application code goes here
+    *   ----    // end file
+    *
+    *
+    *   --------    (controllers/Home.js)
+    *   --------
+    *   --------        BasilInstance.include('controllers/BaseController.js');
+    *   --------
+    *   --------        // Home controller goes here
+    *   --------        return BasilInstance.create(this, {extend: 'BaseController'});
+    *   --------        // end file
     *
     *
     *   Being able to define a files dependencies directly at the top of
-    *   a file allows for a lot of freedom and less mistakes. FILES ARE NOT
-    *   INCLUDED TWICE.
+    *   a file allows for rapid development, remembering what a class
+    *   depends on, and encourages a clean application structure similar to
+    *   that of other structured languages.
     *
     *
     *
-    * @version  1.0
+    * @version  1.2.0
     * @author   Matt Kenefick <m.kenefick@bigspaceship.com>
     * @package  Big Spaceship / Loading
     */
-    function Basil($name, $baseUrl, $cache){
+    function Basil($name /*String*/, $baseUrl /*String*/, $cache /*Boolean*/){
 
         // private vars
         var _self           =   this;
@@ -229,7 +245,7 @@ if(!window['Basil']){
          * one.
          *
          * Ex:
-         *  basilInstance.forceComplete();
+         *  BasilInstance.forceComplete();
          *
          * @access  public
          * @returns void
@@ -245,7 +261,7 @@ if(!window['Basil']){
          * This allows for a fresh start.
          *
          * Ex:
-         *  basilInstance.flush();
+         *  BasilInstance.flush();
          *
          * @access  public
          * @returns void
@@ -270,7 +286,7 @@ if(!window['Basil']){
          * to instantiable classes.
          *
          * Ex:
-         *  basilInstance.register(_self);
+         *  BasilInstance.register(_self);
          *
          * @param   $class  Object of containing class
          * @return  void
@@ -293,9 +309,9 @@ if(!window['Basil']){
          * class where you can call `super`.
          *
          * Ex:
-         *  return basilInstance.extend(_self, 'BaseObject');
+         *  return BasilInstance.extend(_self, 'BaseObject');
          *  // or
-         *  return basilInstance.extend(_self, 'ParentObject', true); // used for static classes
+         *  return BasilInstance.extend(_self, 'ParentObject', true); // used for static classes
          *
          * @param   $classA     Usually _self. Class you want to extend into.
          * @param   $classB     String name of class you want to extend.
@@ -408,9 +424,9 @@ if(!window['Basil']){
          *      class instantiation process.
          *
          * Ex:
-         *  return basilInstance.create(_self);
+         *  return BasilInstance.create(_self);
          *  // or
-         *  return basilInstance.create(_self, {init: 'init', extend: 'className'});
+         *  return BasilInstance.create(_self, {init: 'init', extend: 'className'});
          *
          * @param   $class  Object containing class
          * @param   $params Object specifying register, extensions, ...
@@ -458,7 +474,7 @@ if(!window['Basil']){
          * Sends downloaded files to _include_COMPLETE_handler
          *
          * Ex:
-         *  basilInstance.include('views/main.js');
+         *  BasilInstance.include('views/main.js');
          *
          * @param   $files              String of the URL. Auto prepends BaseURL.
          * @param   $flushAndCallback   A function callback when new basil is completed
@@ -534,8 +550,8 @@ if(!window['Basil']){
          * basil applied can do that for the package itself.
          *
          * Ex:
-         *  basilInstance.execute({
-         *      url:    basilInstance.baseUrl + '../example/Application.js'
+         *  BasilInstance.execute({
+         *      url:    BasilInstance.baseUrl + '../example/Application.js'
          *  });
          *
          * @param   $params     Only param now is "url"
@@ -850,7 +866,7 @@ if(!window['Basil']){
          * Goes through all registered classes and attempts to fire their
          * construct function, then tries to extend them, finally fires
          * their init function. When all is complete, it calls the optional
-         * basilInstance.complete function as a callback.XMLHttpRequest
+         * BasilInstance.complete function as a callback.XMLHttpRequest
          *
          * @return void
          */
