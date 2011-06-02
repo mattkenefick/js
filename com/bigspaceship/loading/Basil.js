@@ -487,7 +487,8 @@ if(!window['Basil']){
 
             // assume we want to reset the basil and
             // start over. good for on-demand loading
-            // controllers and such
+            // controllers and such. We purposely don't
+            // disclose this feature, but it does exist.
             // LAST OBJECT IS A FUNCTION
             if(typeof(args[args.length-1]) == 'function'){
                 _self.complete(args[args.length-1]);
@@ -547,7 +548,8 @@ if(!window['Basil']){
          * but not "init".
          *
          * Currently does not allow extensions from here. But the internal
-         * basil applied can do that for the package itself.
+         * basil applied can do that for the package itself. This method
+         * is experimental and not officially supported as of 1.2.0.
          *
          * Ex:
          *  BasilInstance.execute({
@@ -1016,6 +1018,7 @@ function TinyEvent($event, $handler){
 function TinyEventDelegate(){
     var _self   =   this;
     this.events =   [];
+    this.debug  =   function debug($msg){if(window['console'] && console['log'])console.log($msg);};
     this.exists =   function exists($event, $handler){
         for(var i = 0, l = _self.events.length; i < l; i++){
             if(_self.events[i].name==$event && _self.events[i].handler==$handler)
@@ -1048,8 +1051,12 @@ function TinyEventDelegate(){
     };
     this.trigger=   function trigger($event){
         for(var i = 0, l = _self.events.length; i < l; i++){
-            if(_self.events[i].name==$event)
-                _self.events[i].handler(/**execute**/);
+            if(_self.events[i].name==$event){
+                if(typeof _self.events[i].handler == 'function')
+                    _self.events[i].handler(/**execute**/);
+                else if(typeof _self.events[i].handler == 'object')
+                    _self.events[i].handler[0][_self.events[i].handler[1]]();
+            };
         };
     };
     this.on     =   this.bind; // alias
