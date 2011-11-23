@@ -168,14 +168,14 @@ if(!window['Basil']){
         var _events         =   new TinyEventDelegate();
 
         // public vars
-        this.name           =   $name       || 'Basil';
+        this.name           =   'Basil';
         this.baseUrl        =   $baseUrl    || '';
         this.debug          =   'Out';      // Object, Out, true, false
         this.complete       =   null;       // fired on everything's completion.
         this.errors         =   [];
         this.cache          =   $cache != null ? $cache : true;
         this.tierIndex      =   0;          // which tier of loading are we on
-        this.currentTier    =   0;          // which tier number are we on
+        this.currentTier    =   null;          // which tier number are we on
 
 
     // ===========================================
@@ -202,8 +202,9 @@ if(!window['Basil']){
          * @param   $function   Function to be called
          * @return  _self<Object>
          */
-        this.complete       =   function complete($function){
+        this.complete = function complete($function){
             _events.on('complete', $function);
+            return _self;
         };
 
         /**
@@ -215,8 +216,9 @@ if(!window['Basil']){
          * @param   $function   Function to be called
          * @return  _self<Object>
          */
-        this.construct       =   function construct($function){
+        this.construct = function construct($function){
             _events.on('construct', $function);
+            return _self;
         };
 
         /**
@@ -228,8 +230,9 @@ if(!window['Basil']){
          * @param   $function   Function to be called
          * @return  _self<Object>
          */
-        this.init               =   function init($function){
+        this.init = function init($function){
             _events.on('init', $function);
+            return _self;
         };
 
         /**
@@ -249,7 +252,7 @@ if(!window['Basil']){
          * @access  public
          * @returns void
          */
-        this.forceComplete  =   function forceComplete(){
+        this.forceComplete = function forceComplete(){
             _includeComplete();
         };
 
@@ -265,7 +268,7 @@ if(!window['Basil']){
          * @access  public
          * @returns void
          */
-        this.flush          =   function flush(){
+        this.flush = function flush(){
             _debug("Flushing " + _self.name + " includes, classes, events, states, and errors.");
 
             _include        =   [];
@@ -290,7 +293,7 @@ if(!window['Basil']){
          * @param   $class  Object of containing class
          * @return  void
          */
-        this.register       =   function register($class){
+        this.register = function register($class){
             _classes.push($class);
         };
 
@@ -316,11 +319,11 @@ if(!window['Basil']){
          * @param   $classB     String name of class you want to extend.
          * @return  Class<Object>
          */
-        this.extend         =   function extend($classA, $classB, $isStatic){
-            var _n          =   $classA.name;
+        this.extend = function extend($classA, $classB, $isStatic){
+            var _n = $classA.name;
             var _t, _c, _c1, _c2, _a1, _a2;
 
-            _a1 =   _getObjectByString($classB);
+            _a1 = _getObjectByString($classB);
 
             if(typeof(_a1) == 'function'){
                 // insantiable extension
@@ -331,18 +334,17 @@ if(!window['Basil']){
                     _c2 =   _t[i];
                     // class actually exists.. do work in here
                     if(typeof(_c2)=='function'){
-
                         if($classA[i]){
                             // this only fires when ClassB (under) has the same
                             // function as ClassA (above).. then we super
                             (function(){
-                                var __1 =   _extend($classA[i], []);
-                                var __2 =   _extend(_t[i], []);
+                                var __1 = _extend($classA[i], []);
+                                var __2 = _extend(_t[i], []);
 
                                 // TODO: temp fix for when you passed an argument
                                 // to a function that had a super, no arguments would
                                 // be passed along with. this caps at 6
-                                $classA[i]         =   function _extended_function($a1, $a2, $a3, $a4, $a5, $a6){
+                                $classA[i] = function _extended_function($a1, $a2, $a3, $a4, $a5, $a6){
                                     return (function _superClass(){
                                         this.__super__  =   __2;
                                         return __1($a1, $a2, $a3, $a4, $a5, $a6);
@@ -371,8 +373,8 @@ if(!window['Basil']){
                 _debug("Class [" + $classB + "] doesn't exist. via@" + $classA['name']);
             };
 
-            _t              =   _extend($classA, _t);
-            _t.name         =   _n;
+            _t = _extend($classA, _t);
+            _t.name = _n;
 
             if(_t['setSelf']) _t.setSelf(_t);
 
@@ -431,21 +433,21 @@ if(!window['Basil']){
          * @param   $params Object specifying register, extensions, ...
          * @return  Class<Object>
          */
-        this.create         =   function create($class, $params){
-            $params         =   $params || {};
+        this.create = function create($class, $params){
+            $params = $params || {};
 
             // use a registration
             _self.register($class);
 
             // construct(complete)
             if($params['construct']){
-                $params['construct']    =   typeof($params['construct']) != 'function' ? [$class, $params['construct']] : $params['construct'];
+                $params['construct'] = typeof($params['construct']) != 'function' ? [$class, $params['construct']] : $params['construct'];
                 _self.complete($params['construct']);
             };
 
             // init(complete)
             if($params['init']){
-                $params['init']     =   typeof($params['init']) != 'function' ? [$class, $params['init']] : $params['init'];
+                $params['init'] = typeof($params['init']) != 'function' ? [$class, $params['init']] : $params['init'];
                 _self.init($params['init']);
             };
 
@@ -479,10 +481,10 @@ if(!window['Basil']){
          * @param   $flushAndCallback   A function callback when new basil is completed
          * @return  void
          */
-        this.include        =   function include(){
+        this.include = function include(){
             var i, fullFile, file, noCache;
-            var args        =   arguments;
-            var tier        =   0;
+            var args = arguments;
+            var tier = 0;
 
             // assume we want to reset the basil and
             // start over. good for on-demand loading
@@ -496,12 +498,12 @@ if(!window['Basil']){
             // FIRST OBJECT IS A NUMBER
             // this lets us assign loads to tiers
             if(typeof(args[0]) == 'number'){
-                tier    =   args[0];
+                tier = !_self.currentTier ? 0 : args[0];
             };
 
             // loop through possible args
             for(i = 0, l = args.length; i < l; i++){
-                file        =   args[i];
+                file = args[i];
 
                 // dont execute if it's a function or number
                 if(
@@ -517,9 +519,9 @@ if(!window['Basil']){
 
                 // set the filename, check if it's external
                 // append baseurl if it's relative
-                fullFile    =   _self.baseUrl + file;
+                fullFile = _self.baseUrl + file;
                 if(file.substr(0,4) == 'http'){
-                    fullFile    =   file;
+                    fullFile = file;
                 };
 
                 // should we allow cached files ?
@@ -534,6 +536,8 @@ if(!window['Basil']){
                     _self.downloadScript(fullFile + noCache);
                 };
             };
+
+            return _self;
         };
 
         /**
@@ -558,7 +562,7 @@ if(!window['Basil']){
          * @param   $params     Only param now is "url"
          * @return  void
          */
-        this.execute         =   function execute($params){
+        this.execute = function execute($params){
             _debug("Executing: " + $params.url);
 
             var baseUrl = $params.url.split('/');
@@ -576,9 +580,9 @@ if(!window['Basil']){
                         return;
                     };
 
-                    var pattern =   /this\.name[^=]+[^'"]+.([^'"]+)['"]./;
-                    var name    =   $data.responseText.match(pattern);
-                        name    =   name[1];
+                    var pattern = /this\.name[^=]+[^'"]+.([^'"]+)['"]./;
+                    var name    = $data.responseText.match(pattern);
+                        name    = name[1];
 
                     _debug("Name should be: " + name);
 
@@ -643,7 +647,7 @@ if(!window['Basil']){
     // ===========================================
 
         function _writeTier($tier, $file, $ref){
-            var t   =   _getTier($tier, $ref);
+            var t = _getTier($tier, $ref);
                 t.queue.push($file);
                 $ref.sortOn('tier');
         };
@@ -831,13 +835,12 @@ if(!window['Basil']){
          *
          * @return void
          */
-        var drInt   =   null;
+        var drInt = null;
         function _includeComplete($boolean){
 
             if(_isComplete){
                 clearInterval(drInt);
-                drInt   =   null;
-
+                drInt = null;
                 return;
             };
 
@@ -883,8 +886,8 @@ if(!window['Basil']){
             for( i in _extensions ){
                 for( ii = 0, ll = _classes.length; ii < ll; ii++ ){
                     if(_classes[ii].name == i){
-                        _obj    =   _getObjectByString(_classes[ii].name);
-                        _obj    =   _self.extend(_classes[ii], _extensions[i]);
+                        _obj = _getObjectByString(_classes[ii].name);
+                        _obj = _self.extend(_classes[ii], _extensions[i]);
                     };
                 };
             };
@@ -924,7 +927,7 @@ if(!window['Basil']){
         function _include_COMPLETE_handler($e){
             // delay, let script execute a little
             setTimeout(function(){
-                var a = _getTier(_self.currentTier, _include);
+                var a = _getTier(_self.currentTier || 0, _include);
                     a.complete++;
 
                 // downloaded files matches amount in queue
@@ -934,7 +937,7 @@ if(!window['Basil']){
 
                     // increase index and match next tier ID
                     _self.tierIndex++;
-                    _self.currentTier   =   _getTierNumberFromLevel(_self.tierIndex, _include);
+                    _self.currentTier = _getTierNumberFromLevel(_self.tierIndex, _include);
 
                     if( _self.tierIndex >= _include.length && !_isComplete ){
                         _includeComplete();
