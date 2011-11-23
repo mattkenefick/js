@@ -31,7 +31,7 @@ if(!window['Basil']){
     *
     * 1.) Instantiation
     *
-    *   Three parameters ($name, $baseUrl, and $cache) can be used
+    *   Three parameters ($baseUrl and $cache) can be used
     *   but all of them are optional.
     *
     *       $name       -   Unused at the moment. It keeps track of each Basil.
@@ -152,10 +152,9 @@ if(!window['Basil']){
     *
     *
     * @version  1.2.0
-    * @author   Matt Kenefick <m.kenefick@bigspaceship.com>
-    * @package  Big Spaceship / Loading
+    * @author   Matt Kenefick <keneficksays@gmail.com>
     */
-    function Basil($name /*String*/, $baseUrl /*String*/, $cache /*Boolean*/){
+    function Basil($baseUrl /*String*/, $cache /*Boolean*/){
 
         // private vars
         var _self           =   this;
@@ -438,10 +437,10 @@ if(!window['Basil']){
             // use a registration
             _self.register($class);
 
-            // construct(ready)
+            // construct(complete)
             if($params['construct']){
                 $params['construct']    =   typeof($params['construct']) != 'function' ? [$class, $params['construct']] : $params['construct'];
-                _self.ready($params['construct']);
+                _self.complete($params['construct']);
             };
 
             // init(complete)
@@ -524,15 +523,15 @@ if(!window['Basil']){
                 };
 
                 // should we allow cached files ?
-                noCache = _self.cache == true ? '': '?c=' + Math.random();
+                noCache = _self.cache == true ? '' : '?c=' + Math.random();
 
                 // save to our includes list
-                _writeTier(tier, fullFile+noCache, _include);
+                _writeTier(tier, fullFile + noCache, _include);
 
                 // fetch file if we're in the current tier
                 // allows us to waterfall our downloads
                 if(tier <= _self.currentTier){
-                    _self.downloadScript(fullFile+noCache);
+                    _self.downloadScript(fullFile + noCache);
                 };
             };
         };
@@ -562,15 +561,15 @@ if(!window['Basil']){
         this.execute         =   function execute($params){
             _debug("Executing: " + $params.url);
 
-            var baseUrl =   $params.url.split('/');
+            var baseUrl = $params.url.split('/');
                 baseUrl.pop();
-                baseUrl =   baseUrl.join('/') + '/';
+                baseUrl = baseUrl.join('/') + '/';
 
             _ajax({
-                contentType:        'text/javascript',
-                dataType:           'script',
-                url:                $params.url,
-                complete:           function execute_complete($data){
+                contentType: 'text/javascript',
+                dataType:    'script',
+                url:         $params.url,
+                complete:    function execute_complete($data){
 
                     if(!$data){
                         _debug("Check that you are on a correct domain and do not need proxy.");
@@ -601,7 +600,7 @@ if(!window['Basil']){
             });
         };
 
-        this.downloadScript =   function downloadScript($file){
+        this.downloadScript = function downloadScript($file){
             if(_included.indexOf($file) > -1){
                 _debug("          Already Downloaded: " + $file);
 
@@ -612,18 +611,18 @@ if(!window['Basil']){
 
                 _included.push($file);
                 _ajax({
-                    contentType:        'text/javascript',
-                    dataType:           'script',
-                    url:                $file,
-                    complete:           _include_COMPLETE_handler,
-                    error:              function($jqXHR, $text, $error){
+                    contentType: 'text/javascript',
+                    dataType:    'script',
+                    url:         $file,
+                    complete:    _include_COMPLETE_handler,
+                    error:       function($jqXHR, $text, $error){
                         _include_ERROR_handler($file, $jqXHR, $text, $error);
                     }
                 });
             };
         };
 
-        this.downloadTier   =   function downloadTier($index, $ref){
+        this.downloadTier = function downloadTier($index, $ref){
             var i;
 
             // debug
@@ -708,10 +707,10 @@ if(!window['Basil']){
             var script,
                 head = document.head || document.getElementsByTagName( "head" )[0] || document.documentElement;
 
-            script          =   document.createElement( "script" );
-            script.src      =   $params.url;
-            script.async    =   "async";
-            script.onload   =   script.onreadystatechange = function( _, isAbort ) {
+            script          = document.createElement( "script" );
+            script.src      = $params.url;
+            script.async    = "async";
+            script.onload   = script.onreadystatechange = function( _, isAbort ) {
                 if(!script.readyState || /loaded|complete/.test(script.readyState)){
                     script.onload = script.onreadystatechange = null;
 
@@ -847,10 +846,10 @@ if(!window['Basil']){
                 document.body.removeChild(script);
 
                 _debug([("=").repeat(15), " Document Loaded :: RandID ", drInt, "\n"].join(''));
-                _isComplete =   true;
+                _isComplete = true;
 
                 clearInterval(drInt);
-                drInt       =   null;
+                drInt = null;
 
                 _extendAndInitiate();
             }else{
@@ -976,15 +975,7 @@ if(!window['Basil']){
  * Basil attempts to be self-sufficient so it
  * supplies this function if not already found.
  */
-if(!Array['sortOn']){
-    Array.prototype.sortOn = function($key){
-        this.sort(
-                function(a, b){
-                    return (a[$key] > b[$key]) - (a[$key] < b[$key]);
-                }
-            );
-    };
-};
+Array.prototype.sortOn = Array['sortOn'] || function($key){this.sort(function(a, b){return (a[$key] > b[$key]) - (a[$key] < b[$key]);})};
 
 /**
  * String.prototype.repeat
@@ -992,11 +983,7 @@ if(!Array['sortOn']){
  * Function used to repeat strings really easily
  * and elegantly.
  */
-if(!String['repeat']){
-    String.prototype.repeat = function($n){
-        return new Array($n + 1).join( this );
-    }
-};
+String.prototype.repeat = String['repeat'] || function($n){return new Array($n + 1).join( this );};
 
 
 /**
