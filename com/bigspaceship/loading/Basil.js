@@ -498,7 +498,7 @@ if(!window['Basil']){
             // FIRST OBJECT IS A NUMBER
             // this lets us assign loads to tiers
             if(typeof(args[0]) == 'number'){
-                tier = !_self.currentTier ? 0 : args[0];
+                tier = args[0];
             };
 
             // loop through possible args
